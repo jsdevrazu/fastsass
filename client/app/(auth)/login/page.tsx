@@ -1,9 +1,16 @@
 import type React from "react"
 import Link from "next/link"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Briefcase } from "lucide-react"
 import LoginForm from "@/components/auth/login-form"
 import Logo from "@/components/logo"
+import { Metadata } from "next"
+
+
+
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Login to your FastSass account"
+}
 
 export default function LoginPage() {
 

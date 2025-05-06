@@ -2,17 +2,37 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Building2, Calendar, Clock, DollarSign, MapPin, Share2 } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Clock, DollarSign, MapPin } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { ApplyButton } from "@/components/apply-button"
 import moment from "moment"
 import { ShareJobButton } from "@/components/share-job-button"
+import { Metadata } from "next"
+
+type Props = {
+  params: { slug: string };
+};
+
+async function getJobBySlug(id:string){
+  const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/job/${id}/detail`)
+  const { job } = await data.json() as SingleJobsResponse
+  return job
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const job = await getJobBySlug(params.slug);
+
+  return {
+    title: job?.title || "Job Details",
+    description: job?.meta_description?.slice(0, 150) || "Details of the job",
+  };
+}
 
 export default async function JobDetailsPage({ params }: { params: { id: string } }) {
  const { id } = await params;
+ const job = await getJobBySlug(id)
  await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/job/update-view/${id}`)
- const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/job/${id}/detail`)
- const { job } = await data.json() as SingleJobsResponse
+ 
 
   return (
     <div className="flex flex-col min-h-screen">

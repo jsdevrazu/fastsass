@@ -1,4 +1,10 @@
 import Filter from "@/components/jobs/filter"
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Jobs List",
+  description: "Browse the latest job listings on FastSass",
+};
 
 export default async function JobsPage() {
 

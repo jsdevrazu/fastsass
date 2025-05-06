@@ -78,7 +78,7 @@ uv.lock # Uvicorn lock file for deployment
     ```bash
     uvicorn main:app --reload
     ```
-
+<!-- uv pip freeze > uv.lock -->
 7. The app will be running on `http://localhost:8000`.
 
 ## Features

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import Cookies from "js-cookie";
-import { REFRESH_TOKEN, ACCESS_TOKEN, FASTSASSTHEME, DEFAULT_THEME } from "@/constants";
+import { REFRESH_TOKEN, ACCESS_TOKEN } from "@/constants";
 import { get_me } from "@/lib/apis/auth";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -9,8 +9,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: !!Cookies.get(ACCESS_TOKEN),
   user: null,
   loading: true,
-  theme: 'system',
-  setTheme: (theme) => set({ theme }),
   setUser: (user) => set({ user }),
   setLogin: (accessToken, refreshToken, user) => {
     Cookies.set(ACCESS_TOKEN, accessToken);
@@ -33,8 +31,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     Cookies.remove(REFRESH_TOKEN);
   },
   initialLoading: async () => {
-    const theme =  typeof window !== "undefined" ? (localStorage.getItem(FASTSASSTHEME) as Theme) || DEFAULT_THEME : DEFAULT_THEME
-    set({ theme })
     if (get().accessToken) {
       try {
         const data = await get_me()

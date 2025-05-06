@@ -2,6 +2,13 @@ import Link from "next/link"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Logo from "@/components/logo"
 import SignupForm from "@/components/auth/signup-form"
+import { Metadata } from "next";
+
+
+export const metadata: Metadata = {
+  title: "Signup",
+  description: "Create your FastSass account",
+};
 
 export default function RegisterPage() {
 

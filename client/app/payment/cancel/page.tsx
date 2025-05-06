@@ -6,17 +6,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 export default function PaymentCancelPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="p-8 shadow-lg border-gray-100 bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md relative z-[100]">
+        <Card className="p-8 shadow-lg">
           <div className="flex flex-col items-center text-center space-y-6">
-            <div className="rounded-full bg-gray-100 p-3">
-              <XCircle className="h-12 w-12 text-gray-500" />
+            <div className="rounded-full p-3">
+              <XCircle className="h-12 w-12" />
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-gray-900">Payment Cancelled</h1>
-              <p className="text-gray-600">
+              <h1 className="text-2xl font-bold">Payment Cancelled</h1>
+              <p>
                 Your payment process was cancelled. No charges have been made to your account.
               </p>
             </div>
@@ -38,7 +38,7 @@ export default function PaymentCancelPage() {
               <AccordionItem value="item-1">
                 <AccordionTrigger className="text-sm">Why was my payment cancelled?</AccordionTrigger>
                 <AccordionContent>
-                  <ul className="text-sm text-gray-600 text-left list-disc pl-5 space-y-1">
+                  <ul className="text-sm text-left list-disc pl-5 space-y-1">
                     <li>You may have clicked the cancel button during checkout</li>
                     <li>Your card might have insufficient funds</li>
                     <li>There could be an issue with your payment method</li>
@@ -49,7 +49,7 @@ export default function PaymentCancelPage() {
               <AccordionItem value="item-2">
                 <AccordionTrigger className="text-sm">What payment methods do you accept?</AccordionTrigger>
                 <AccordionContent>
-                  <p className="text-sm text-gray-600 text-left">
+                  <p className="text-sm text-left">
                     We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and bank transfers.
                     For certain regions, we also support local payment methods.
                   </p>
@@ -60,7 +60,7 @@ export default function PaymentCancelPage() {
         </Card>
 
         <div className="mt-6 flex justify-center">
-          <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+          <Button asChild variant="ghost">
             <Link href="/pricing" className="inline-flex items-center">
               <CreditCard className="mr-2 h-4 w-4" /> View Pricing Plans
             </Link>

@@ -15,8 +15,11 @@ const lato = Lato({
 })
 
 export const metadata: Metadata = {
-  title: "Job Portal App",
-  description: "Created with Razu Islam"
+  title: {
+    default: "FastSass Web Application",
+    template: "%s | FastSass",
+  },
+  description: "Created with Razu Islam",
 }
 
 export default async function RootLayout({

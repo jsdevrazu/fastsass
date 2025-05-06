@@ -1,4 +1,3 @@
-type Theme = "dark" | "light" | "system"
 
 interface AuthState {
     accessToken: string | null;
@@ -10,6 +9,4 @@ interface AuthState {
     user: User | null;
     loading: boolean
     initialLoading: () => void,
-    theme:Theme,
-    setTheme: (theme: Theme) => void
   }

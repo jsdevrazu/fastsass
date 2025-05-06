@@ -6,10 +6,12 @@ import { useAuthStore } from "@/store/store"
 import { baseURLPhoto } from "@/lib/axios"
 import { Moon, Sun } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useTheme } from "next-themes"
 
 const SeekerDashboardHeader = () => {
 
-    const { user, setTheme } = useAuthStore()
+    const { setTheme} = useTheme()
+    const { user } = useAuthStore()
 
     return (
         <header className="flex h-14 justify-end items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">

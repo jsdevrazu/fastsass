@@ -5,6 +5,14 @@ import Hero from "@/components/home/hero"
 import FeaturedJobs from "@/components/home/featured-jobs"
 import Header from "@/components/layouts/header"
 import Footer from "@/components/layouts/footer"
+import { Metadata } from "next"
+
+
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Welcome to FastSass Web App homepage",
+}
 
 export default async function HomePage() {
 
