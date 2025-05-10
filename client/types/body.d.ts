@@ -37,3 +37,8 @@ interface ApplyFormPayload{
     cover_letter: string
   }
 }
+
+interface ResetPasswordPayload{
+  otp:string
+  new_password: string
+}

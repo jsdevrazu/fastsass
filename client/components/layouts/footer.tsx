@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Briefcase } from "lucide-react"
+import Logo from "@/components/logo"
 
 const Footer = () => {
     return (
@@ -7,14 +7,13 @@ const Footer = () => {
             <div className="app_container flex flex-col gap-4 py-10 md:flex-row md:gap-8 md:py-12">
                 <div className="flex flex-col gap-2">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-                        <Briefcase className="h-6 w-6" />
-                        <span>JobPortal</span>
+                        <Logo />
                     </Link>
                     <p className="text-sm text-muted-foreground">Find your dream job or the perfect candidate.</p>
                 </div>
                 <div className="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">
                     <div className="flex flex-col gap-2">
-                        <h3 className="text-sm font-medium">For Job Seekers</h3>
+                        <h3 className="font-semibold">For Job Seekers</h3>
                         <nav className="flex flex-col gap-2">
                             <Link href="/jobs" className="text-sm hover:underline">
                                 Browse Jobs
@@ -22,13 +21,13 @@ const Footer = () => {
                             <Link href="/companies" className="text-sm hover:underline">
                                 Companies
                             </Link>
-                            <Link href="/resources" className="text-sm hover:underline">
+                            <Link href="/resources/job-seekers" className="text-sm hover:underline">
                                 Resources
                             </Link>
                         </nav>
                     </div>
                     <div className="flex flex-col gap-2">
-                        <h3 className="text-sm font-medium">For Employers</h3>
+                        <h3 className="font-semibold">For Employers</h3>
                         <nav className="flex flex-col gap-2">
                             <Link href="/employer/post-job" className="text-sm hover:underline">
                                 Post a Job
@@ -36,13 +35,13 @@ const Footer = () => {
                             <Link href="/pricing" className="text-sm hover:underline">
                                 Pricing
                             </Link>
-                            <Link href="/employer-resources" className="text-sm hover:underline">
+                            <Link href="/resources/employers" className="text-sm hover:underline">
                                 Resources
                             </Link>
                         </nav>
                     </div>
                     <div className="flex flex-col gap-2">
-                        <h3 className="text-sm font-medium">Company</h3>
+                        <h3 className="font-semibold">Company</h3>
                         <nav className="flex flex-col gap-2">
                             <Link href="/about" className="text-sm hover:underline">
                                 About

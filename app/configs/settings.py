@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str
     stripe_success_url: str
     stripe_cancel_url: str
+    client_url: str
 
     class Config:
         env_file = '.env'

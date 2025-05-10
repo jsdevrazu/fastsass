@@ -6,6 +6,8 @@ import { Toaster } from 'sonner'
 import { GlobalLoader } from "@/components/global-loader"
 import { Lato } from 'next/font/google'
 import { ThemeProvider } from "@/components/theme-provider"
+import 'react-quill-new/dist/quill.snow.css';
+
 
 
 const lato = Lato({

@@ -17,6 +17,16 @@ export const change_password = async (credentials: {
     return response.data;
 };
 
+export const forgot_password = async (email:string) => {
+    const response = await api.post(ApiStrings.FORGOT_PASSWORD, {email});
+    return response.data;
+};
+
+export const reset_password = async (payload: ResetPasswordPayload) => {
+    const response = await api.post(ApiStrings.RESET_PASSWORD, payload);
+    return response.data;
+};
+
 export const get_me = async (): Promise<CurrentUserResponse> =>{
     const response = await api.get<CurrentUserResponse>(ApiStrings.ME);
     return response.data;

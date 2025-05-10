@@ -45,7 +45,11 @@ async def login_via_google(request: Request):
 @router.get("/auth/google/callback")
 async def google_callback(request: Request):
     token = await oauth.google.authorize_access_token(request)
-    user_info = await oauth.google.parse_id_token(request, token)
+    
+    try:
+        user_info = await oauth.google.parse_id_token(request, token)
+    except Exception:
+        user_info = token.get("userinfo")
 
     email = user_info.get("email")
     name = user_info.get("name")
@@ -65,7 +69,7 @@ async def google_callback(request: Request):
         db.users.insert_one(user)
 
     token = fetch_token(name, email)
-    response = RedirectResponse(url=f"http://localhost:3000?token={token['access_token']}")
+    response = RedirectResponse(url=f"{settings.client_url}/api/auth/callback?token={token['access_token']}")
     return response
 
 @router.post("/register")
@@ -112,7 +116,8 @@ async def register(
             "is_verified": False,
             "verify_token": token['access_token'],
             "refresh_token": refresh_token,
-            "company_id": company_id
+            "company_id": company_id,
+            "auth_provider": "email"
         }
 
         db.users.insert_one(payload)
@@ -251,7 +256,6 @@ def reset_password(body: ResetPasswordSchema):
             "otp": body.otp,
             "expired_at": {"$gt": now}
         })
-        print("otp", otp['email'])
         if not otp:
             api_error(404, "Invalid Otp or Expired")
         h_password = hash_password(body.new_password)

@@ -57,6 +57,7 @@ class User(BaseModel):
     website: Optional[str] = ''
     linkedin_profile: Optional[str] = ''
     github_profile: Optional[str] = ''
+    auth_provider: Optional[str] = ''
     education: Optional[Education] = None
 
 

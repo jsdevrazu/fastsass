@@ -7,6 +7,8 @@ const ApiStrings = {
     LOGOUT: "/auth/logout",
     REFRESH_TOKEN: "/auth/refresh",
     CHANGE_PASSWORD: "/auth/change-password",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    RESET_PASSWORD: "/auth/reset-password",
     COMPANY_PROFILE: "/auth/company-profile",
     // Jobs
     GET_JOBS: "/job/jobs",

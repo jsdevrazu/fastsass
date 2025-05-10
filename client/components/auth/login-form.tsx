@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Github, Linkedin } from "lucide-react"
+import { Github } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
@@ -18,6 +18,8 @@ import { loginUser } from "@/lib/apis/auth"
 import { useAuthStore } from "@/store/store"
 import ErrorMessage from "@/components/error-message"
 import { toast } from 'sonner'
+import { FaGoogle } from "react-icons/fa";
+
 
 const LoginForm = () => {
 
@@ -75,6 +77,12 @@ const LoginForm = () => {
         };
         login.mutate(input);
     };
+
+    const handleSocialMedia = (provider:string) =>{
+        if(provider === 'google'){
+            window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login/google`
+        }
+    }
 
 
     useEffect(() => {
@@ -139,9 +147,9 @@ const LoginForm = () => {
                         <Github className="mr-2 h-4 w-4" />
                         Github
                     </Button>
-                    <Button variant="outline" className="w-full">
-                        <Linkedin className="mr-2 h-4 w-4" />
-                        LinkedIn
+                    <Button onClick={() => handleSocialMedia('google')} variant="outline" className="w-full">
+                        <FaGoogle className="mr-2 h-4 w-4" />
+                        Google
                     </Button>
                 </div>
             </CardContent>

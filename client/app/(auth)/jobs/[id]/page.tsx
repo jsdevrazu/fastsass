@@ -79,7 +79,7 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
               <Separator />
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Job Description</h2>
-                <div dangerouslySetInnerHTML={{
+                <div className="job_description" dangerouslySetInnerHTML={{
                   __html: job?.body
                 }} />
               </div>

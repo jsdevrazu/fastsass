@@ -23,6 +23,45 @@ body {
   height: 200px;
 }
 
+.job_description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-color, #333); 
+}
+
+.dark .job_description {
+  color: #e0e0e0; 
+}
+
+.dark .job_description span{
+  background-color: transparent !important;
+  color: #f8fafc !important;
+}
+
+.dark .job_description strong{
+  background-color: transparent !important;
+  color: #f8fafc !important;
+}
+
+.job_description h1, .job_description h2, .job_description h3 {
+  font-size: 1.5em;
+  margin: 1em 0 0.5em;
+}
+
+.job_description ul, .job_description ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.job_description li {
+  margin-bottom: 0.5rem;
+}
+
+.job_description p {
+  margin-bottom: 1rem;
+}
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

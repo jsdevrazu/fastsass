@@ -43,7 +43,7 @@ const PriceSection = () => {
                     <CardTitle className="text-2xl">Basic</CardTitle>
                     <CardDescription>Perfect for small businesses</CardDescription>
                     <div className="mt-4">
-                        <span className="text-4xl font-bold">$99</span>
+                        <span className="text-4xl font-bold">5000 BDT</span>
                         <span className="text-muted-foreground"> /month</span>
                     </div>
                 </CardHeader>
@@ -52,18 +52,6 @@ const PriceSection = () => {
                         <li className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary" />
                             <span>5 job postings per month</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>30 days visibility per job</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Basic applicant tracking</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Email support</span>
                         </li>
                     </ul>
                 </CardContent>
@@ -81,7 +69,7 @@ const PriceSection = () => {
                     <CardTitle className="text-2xl">Professional</CardTitle>
                     <CardDescription>For growing companies</CardDescription>
                     <div className="mt-4">
-                        <span className="text-4xl font-bold">$199</span>
+                        <span className="text-4xl font-bold">15000 BDT</span>
                         <span className="text-muted-foreground"> /month</span>
                     </div>
                 </CardHeader>
@@ -90,26 +78,6 @@ const PriceSection = () => {
                         <li className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary" />
                             <span>15 job postings per month</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>45 days visibility per job</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Advanced applicant tracking</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Featured job listings</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Resume database access</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Priority email support</span>
                         </li>
                     </ul>
                 </CardContent>
@@ -124,7 +92,7 @@ const PriceSection = () => {
                     <CardTitle className="text-2xl">Enterprise</CardTitle>
                     <CardDescription>For large organizations</CardDescription>
                     <div className="mt-4">
-                        <span className="text-4xl font-bold">$499</span>
+                        <span className="text-4xl font-bold">30000 BDT</span>
                         <span className="text-muted-foreground"> /month</span>
                     </div>
                 </CardHeader>
@@ -133,34 +101,6 @@ const PriceSection = () => {
                         <li className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary" />
                             <span>Unlimited job postings</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>60 days visibility per job</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Premium applicant tracking</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Featured and highlighted listings</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Full resume database access</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Branded company profile</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>API access</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span>Dedicated account manager</span>
                         </li>
                     </ul>
                 </CardContent>

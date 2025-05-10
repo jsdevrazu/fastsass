@@ -1,4 +1,3 @@
-import 'react-quill-new/dist/quill.snow.css';
 import dynamic from 'next/dynamic';
 import { Dispatch, SetStateAction } from 'react';
 
