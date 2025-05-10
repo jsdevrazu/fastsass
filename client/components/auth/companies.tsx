@@ -159,37 +159,37 @@ function CompanyCard({ company }: { company: CompaniesEntity }) {
                         <div className="flex-shrink-0">
                             <div className="w-16 h-16 rounded-md border bg-muted flex items-center justify-center overflow-hidden">
                                 <img
-                                    src={baseURLPhoto(company.logo) || "/placeholder.svg"}
-                                    alt={`${company.name} logo`}
+                                    src={baseURLPhoto(company?.logo) || "/placeholder.svg"}
+                                    alt={`${company?.name} logo`}
                                     className="w-full h-full object-contain p-2"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <h3 className="font-semibold text-lg line-clamp-1">{company.name}</h3>
+                            <h3 className="font-semibold text-lg line-clamp-1">{company?.name}</h3>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                <span>{company.rating}</span>
+                                <span>{company?.rating}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-4 space-y-2">
-                        <p className="text-sm text-muted-foreground line-clamp-2">{company.company_description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{company?.company_description}</p>
 
                         <div className="flex flex-wrap gap-2 mt-3">
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <Building className="h-3 w-3" />
-                                {company.industry}
+                                {company?.industry}
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                {company.headquatar_location.split(",")[0]}
+                                {company?.headquatar_location?.split(",")[0]}
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                {company.company_size}
+                                {company?.company_size}
                             </Badge>
                         </div>
                     </div>
@@ -198,10 +198,10 @@ function CompanyCard({ company }: { company: CompaniesEntity }) {
 
             <CardFooter className="flex justify-between items-center p-4 bg-muted/30 border-t">
                 <div className="text-sm font-medium">
-                    <span className="text-primary">{company.jobs_open}</span> open positions
+                    <span className="text-primary">{company?.jobs_open}</span> open positions
                 </div>
                 <Button asChild size="sm" variant="ghost" className="gap-1">
-                    <Link href={`/companies/${company._id}`}>
+                    <Link href={`/companies/${company?._id}`}>
                         View Company
                         <ExternalLink className="h-3.5 w-3.5" />
                     </Link>

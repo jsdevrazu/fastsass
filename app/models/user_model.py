@@ -31,6 +31,12 @@ class Education(BaseModel):
     end_date:str
     institution: str
 
+class EmployerFeature(BaseModel):
+    max_job_post: int
+    current_plan_name: str
+    subscription_id: str
+    is_active: bool
+
 class User(BaseModel):
     first_name: str
     last_name: str
@@ -40,8 +46,6 @@ class User(BaseModel):
     is_verified: Optional[bool] = False
     refresh_token: Optional[str] = ''
     verify_token: Optional[str] = ''
-    subscription_id: Optional[str] = ''
-    is_active: Optional[bool] = False
     created_at: Optional[datetime] =  datetime.now()
     updated_at: Optional[datetime] =  datetime.now()
     company_id: ObjectId
@@ -59,6 +63,7 @@ class User(BaseModel):
     github_profile: Optional[str] = ''
     auth_provider: Optional[str] = ''
     education: Optional[Education] = None
+    feature: Optional[EmployerFeature] = None
 
 
 

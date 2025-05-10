@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, UploadFile, Form, File
+from fastapi import APIRouter, Depends, Query
 from pymongo.errors import PyMongoError
 from app.utils.error_handler import api_error
 from app.validation_schema.post_validation_schema import JobSchema
@@ -25,17 +25,23 @@ def post_job(
     user=Depends(require_active_subscription)
 ):
     try:
+        now = datetime.now()
         payload = {
             **body.model_dump(),
             "slug": slugify(body.title),
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": now,
+            "updated_at": now,
             "post_by": ObjectId(user['_id']),
-            "application_dead_line": timedelta(days=30),
+            "application_dead_line": now + timedelta(days=30),
             "company_name": ObjectId(user['company_id'])
         }
 
         db.jobs.insert_one(payload)
+
+        db.users.find_one_and_update(
+            {"email": user['email'],},
+            {"$inc": {"feature.used_job": 1}}
+        )
 
         return {
             "message": "Job post successfully"
@@ -636,6 +642,40 @@ def export_applications(user=Depends(require_role('employer'))):
         api_error(500, f"Error generating report: {str(e)}")
 
 
+@router.get('/my-jobs/export')
+def export_applications(user=Depends(require_role('employer'))):
+        jobs_cursor = db.jobs.find({"post_by": ObjectId(user['_id'])})
+
+        wb = Workbook(write_only=True)  
+        ws = wb.create_sheet(title="My All Job")
+
+        headers = ["Job Title", "Applications", "Status", "Posted", "Expires"]
+        ws.append(headers)
+
+        for job in jobs_cursor:
+            job_title = job.get("title", "")
+            status = job.get("status", "")
+            posted = job.get("created_at", datetime.now()).strftime("%Y-%m-%d")
+            expires = job.get("application_dead_line", datetime.now()).strftime("%Y-%m-%d")
+
+            application_count = db.applications.count_documents({"job_id": job["_id"]})
+
+            ws.append([
+                job_title,
+                application_count,
+                status,
+                posted,
+                expires
+            ])
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        return StreamingResponse(output, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                 headers={"Content-Disposition": "attachment; filename=my_jobs_export.xlsx"})
+
+
 @router.get('/featured-jobs')
 def featured_jobs():
     pipeline = [
@@ -656,6 +696,7 @@ def featured_jobs():
                 "company.name": 1,
                 "job_type": 1,
                 "location": 1,
+                "title": 1,
                 "meta_description": 1,
                 "skills": 1,
                 "slug": 1

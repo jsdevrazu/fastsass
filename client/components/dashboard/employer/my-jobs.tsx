@@ -24,11 +24,16 @@ import { ColumnDef } from "@tanstack/react-table"
 import { getStatusVariant } from "@/lib/utils"
 import moment from "moment"
 import { DataTable } from "@/components/data-table"
+import api from '@/lib/axios'
+import ApiStrings from "@/lib/api_strings"
+import { toast } from "sonner"
+
 
 const MyJobs = () => {
 
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
+    const [isFetching, setIsFetching] = useState(false)
 
 
     const { isLoading, data } = useQuery<MyJobsResponse>({
@@ -88,6 +93,27 @@ const MyJobs = () => {
         }
     ];
 
+    const handleExport = async () => {
+        setIsFetching(true)
+        try {
+            const response = await api.get(ApiStrings.JOBS_EXPORT, {
+                responseType: 'blob',
+            })
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a')
+            link.href = url
+
+            link.setAttribute('download', 'job_applications_report.xlsx')
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+        } catch (error) {
+            toast.error("Export Fail")
+        } finally {
+            setIsFetching(false)
+        }
+    }
+
 
     if (isLoading) return <EmployerJobsLoading />
 
@@ -103,9 +129,9 @@ const MyJobs = () => {
                 </Button>
             </div>
             <div className="flex items-center justify-end gap-2 mb-4">
-                <Button variant="outline">
+                <Button onClick={handleExport} disabled={isFetching} variant="outline">
                     <Download className="mr-2 h-4 w-4" />
-                    Export
+                    {isFetching ? 'Exporting...' : 'Export'}
                 </Button>
             </div>
             <DataTable

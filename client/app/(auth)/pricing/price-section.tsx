@@ -1,4 +1,5 @@
 "use client"
+import { OverlayLock } from "@/components/overlay-lock"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { create_payment_link } from "@/lib/apis/payment"
@@ -37,6 +38,8 @@ const PriceSection = () => {
 
 
     return (
+        <>
+        <OverlayLock visible={isPending} />
         <div className="grid grid-cols-1 gap-6 pt-12 md:grid-cols-3 md:gap-8">
             <Card className="flex flex-col">
                 <CardHeader className="flex flex-col space-y-1.5">
@@ -100,7 +103,7 @@ const PriceSection = () => {
                     <ul className="space-y-2 text-sm">
                         <li className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary" />
-                            <span>Unlimited job postings</span>
+                            <span>50 job postings per month</span>
                         </li>
                     </ul>
                 </CardContent>
@@ -111,6 +114,7 @@ const PriceSection = () => {
                 </CardFooter>
             </Card>
         </div>
+        </>
     )
 }
 

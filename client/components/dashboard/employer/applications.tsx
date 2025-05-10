@@ -49,7 +49,7 @@ const MyJobsApplication = () => {
             const link = document.createElement('a')
             link.href = url
 
-            link.setAttribute('download', 'export.xlsx')
+            link.setAttribute('download', 'job_applications_report.xlsx')
             document.body.appendChild(link)
             link.click()
             link.remove()

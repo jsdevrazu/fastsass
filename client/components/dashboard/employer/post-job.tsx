@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/store"
 import { useEffect } from "react"
+import { OverlayLock } from "@/components/overlay-lock"
 
 export default function PostJobPage() {
 
@@ -75,6 +76,8 @@ export default function PostJobPage() {
   }, [])
 
   return (
+    <>
+    <OverlayLock visible={user?.feature?.is_active !== true || user?.feature?.used_job === user?.feature?.max_job_post} isButtonVisible message="Please updagrade your plan" />
     <div className="flex min-h-screen">
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-auto">
@@ -209,7 +212,7 @@ export default function PostJobPage() {
                   </div>
 
                 </div>
-                <Button disabled={isPending || !user?.is_active} type="submit" className="w-full">
+                <Button disabled={isPending || !user?.feature?.is_active} type="submit" className="w-full">
                   {isPending ? 'loading...' : 'Post Job'}
                 </Button>
               </form>
@@ -233,5 +236,6 @@ export default function PostJobPage() {
         </main>
       </div>
     </div>
+    </>
   )
 }

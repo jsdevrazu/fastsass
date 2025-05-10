@@ -209,7 +209,8 @@ async def verify_email(token: str):
             {"email": email},
             {"$set": {"is_verified": True}, "$unset": {"verify_token": ""}}
         )
-        return {"msg": "Email verified successfully"}
+        response = RedirectResponse(url=f"{settings.client_url}/login")
+        return response
 
     except Exception as error:
         api_error(400, f"{error}")
@@ -404,9 +405,7 @@ def get_current_user_profile(user=Depends(get_current_user)):
                     "role": 1,
                     "created_at": 1,
                     "updated_at": 1,
-                    "is_active": 1,
                     "profile_view": 1,
-                    "subscription_id": 1,
                     "phone_number": 1,
                     "location": 1,
                     "resume": 1,
@@ -415,6 +414,8 @@ def get_current_user_profile(user=Depends(get_current_user)):
                     "skills": 1,
                     "experience": 1,
                     "website": 1,
+                    "feature": 1,
+                    "auth_provider": 1,
                     "education": 1,
                     "github_profile": 1,
                     "linkedin_profile": 1,

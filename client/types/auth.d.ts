@@ -32,7 +32,15 @@ interface User {
   website: string;
   education: Education
   comapny: Company
-  is_active: boolean
+  feature: {
+    max_job_post: number
+    current_plan_name: string
+    price: string
+    subscription_id: string
+    next_billing_date: string
+    used_job: number
+    is_active: boolean
+  }
 }
 interface SkillsEntity {
   name: string;

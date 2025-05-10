@@ -44,19 +44,19 @@ export default async function PaymentSuccessPage() {
             <div className="bg-green-50 rounded-lg p-4 w-full">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Transaction ID</span>
-                <span className="text-sm font-medium">{data.transaction_id}</span>
+                <span className="text-sm font-medium text-gray-600">{data.transaction_id}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Date</span>
-                <span className="text-sm font-medium">{new Date().toLocaleDateString()}</span>
+                <span className="text-sm font-medium text-gray-600">{new Date().toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Amount</span>
-                <span className="text-sm font-medium">${data.amount}</span>
+                <span className="text-sm font-medium text-gray-600">{data.amount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Plan</span>
-                <span className="text-sm font-medium">{data.plan_name}</span>
+                <span className="text-sm font-medium text-gray-600">{data.plan_name}</span>
               </div>
             </div>
 

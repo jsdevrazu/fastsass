@@ -18,6 +18,10 @@ import { useAuthStore } from "@/store/store"
 import { toast } from 'sonner'
 import { logout_api } from "@/lib/apis/auth"
 import Logo from "@/components/logo"
+import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Progress } from "@/components/ui/progress"
+import { calculateRemainingDays } from "@/lib/utils/date-formater"
 
 const navItemsSeeker = [
   {
@@ -85,6 +89,15 @@ const SeekerDashboardSidebar = () => {
   const { logout, user } = useAuthStore()
   const router = useRouter()
   const navItems = user?.role === 'employer' ? navItemsEmployer : navItemsSeeker
+  const used_job = user?.feature?.used_job ?? 0
+  const limit_job = user?.feature?.max_job_post ?? 0
+  const jobPostUsagePercent = Math.round((used_job / limit_job) * 100)
+
+  const getUsageColor = (percent: number) => {
+    if (percent < 60) return "bg-green-500"
+    if (percent < 85) return "bg-yellow-500"
+    return "bg-red-500"
+  }
 
 
   const handleLogout = async () => {
@@ -101,11 +114,12 @@ const SeekerDashboardSidebar = () => {
           <Logo />
         </Link>
       </div>
+
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid gap-1 px-2">
           {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href 
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
@@ -118,10 +132,62 @@ const SeekerDashboardSidebar = () => {
                 <Icon className="h-4 w-4" />
                 {item.title}
               </Link>
-            )
+            );
           })}
         </nav>
+
+        {user?.role === 'employer' && (
+          <div className="mt-6 px-3">
+            <div className="rounded-md border p-3 bg-background">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium">Usage Limits</h4>
+                <Link href="/pricing">
+                  <Badge variant="secondary" className="cursor-pointer">
+                    Upgrade
+                  </Badge>
+                </Link>
+              </div>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Job Posts</span>
+                        <span
+                          className={cn(
+                            "font-medium",
+                            jobPostUsagePercent > 85
+                              ? "text-red-500"
+                              : jobPostUsagePercent > 60
+                                ? "text-yellow-500"
+                                : "text-green-500",
+                          )}
+                        >
+                          {user?.feature?.used_job}/{user?.feature?.max_job_post}
+                        </span>
+                      </div>
+                      <Progress
+                        value={jobPostUsagePercent}
+                        className="h-2"
+                        indicatorClassName={getUsageColor(jobPostUsagePercent)}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>You've used {jobPostUsagePercent}% of your job posting limit</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <div className="mt-2 text-xs text-muted-foreground">
+                <p>Plan renews in {calculateRemainingDays(user?.feature?.next_billing_date)} days</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
       <div className="mt-auto p-4">
         <Button onClick={handleLogout} variant="outline" className="w-full">
           <LogOut className="mr-2 h-4 w-4" />

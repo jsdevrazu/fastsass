@@ -14,7 +14,7 @@ class JobSchema(BaseModel):
     apply_settings: Literal['email', 'external_link', 'application_form'] 
     application_email: Optional[str] = ''
     application_link: Optional[str] = ''
-    status: Literal['active', 'closed'] ='acive'
+    status: Literal['active', 'closed'] ='active'
 
 class UpdateJobSchema(BaseModel):
     title: Optional[str] = None
