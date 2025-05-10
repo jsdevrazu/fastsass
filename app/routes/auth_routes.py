@@ -37,14 +37,30 @@ oauth.register(
     }
 )
 
+oauth.register(
+    name='github',
+    client_id=settings.github_client_id,
+    client_secret=settings.github_client_secret,
+    access_token_url='https://github.com/login/oauth/access_token',
+    authorize_url='https://github.com/login/oauth/authorize',
+    api_base_url='https://api.github.com/',
+    client_kwargs={'scope': 'read:user user:email'},
+)
+
 @router.get("/login/google")
-async def login_via_google(request: Request):
+async def login_via_google(request: Request,  role: str = "job_seeker"):
     redirect_uri = request.url_for('google_callback')
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    return await oauth.google.authorize_redirect(request, redirect_uri, state=role)
+
+@router.get("/login/github")
+async def github_login(request: Request,  role: str = "job_seeker"):
+    redirect_uri = request.url_for("github_callback")
+    return await oauth.github.authorize_redirect(request, redirect_uri, state=role)
 
 @router.get("/auth/google/callback")
 async def google_callback(request: Request):
     token = await oauth.google.authorize_access_token(request)
+    role = request.query_params.get("state")  
     
     try:
         user_info = await oauth.google.parse_id_token(request, token)
@@ -56,21 +72,65 @@ async def google_callback(request: Request):
     picture = user_info.get("picture")
 
     existing_user = db.users.find_one({"email": email})
+    token = fetch_token(name, email)
+    company_id = None
+    if "employer" in role:
+           company = db.companies.insert_one({
+                "name": name
+            })
+           company_id = company.inserted_id
     if not existing_user:
         user = {
             "email": email,
-            "name": name,
+            "first_name": name,
             "avatar": picture,
             "is_verified": True,
-            "role": "user",
-            "auth_provider": "google"
+            "auth_provider": "google",
+            "refresh_token": token['refresh_token'],
+            "role": role,
+            "company_id": company_id
         }
 
         db.users.insert_one(user)
 
-    token = fetch_token(name, email)
     response = RedirectResponse(url=f"{settings.client_url}/api/auth/callback?token={token['access_token']}")
     return response
+
+
+@router.get("/auth/github/callback")
+async def github_callback(request: Request):
+    token = await oauth.github.authorize_access_token(request)
+    role = request.query_params.get("state")  
+    user_info = await oauth.github.get("user", token=token)
+    user_data = user_info.json()
+
+    email = user_data.get("email")
+    username = user_data.get("login")
+    avatar_url = user_data.get("avatar_url")
+
+    existing_user = db.users.find_one({"email": email})
+    company_id = None
+    if "employer" in role:
+           company = db.companies.insert_one({
+                "name": username
+            })
+           company_id = company.inserted_id
+
+    if not existing_user:
+        token_data = fetch_token(username, email or f"{username}@github.com")
+        new_user = {
+            "first_name": username,
+            "email": f"{username}@github.com",
+            "avatar": avatar_url,
+            "auth_provider": "github",
+            "is_verified": True,
+            "refresh_token": token_data['refresh_token'],
+            "role": role,
+            "company_id": company_id
+        }
+        db.users.insert_one(new_user)
+
+    return RedirectResponse(f"{settings.client_url}/api/auth/callback?token={token_data['access_token']}")
 
 @router.post("/register")
 async def register(
@@ -160,6 +220,9 @@ async def login(res: Response, body:LoginSchema):
         db_user = db.users.find_one({'email': body.email})
         if not db_user:
             api_error(400, "User doesn't exit")
+
+        if db_user['auth_provider'] != 'email':
+            api_error(400, f'You are login {db_user['auth_provider']} please set password then you use login via password and email')
         
         match_password = verify_password(body.password, db_user['password'])
         if not match_password:

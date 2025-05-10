@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     stripe_success_url: str
     stripe_cancel_url: str
     client_url: str
+    github_client_id:str
+    github_client_secret:str
 
     class Config:
         env_file = '.env'

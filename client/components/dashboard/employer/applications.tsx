@@ -22,17 +22,44 @@ import EmployerJobsLoading from "@/app/(employer)/employer/my-jobs/loading"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/data-table"
 import moment from "moment"
+import api from '@/lib/axios'
+import { toast } from "sonner"
+import ApiStrings from "@/lib/api_strings"
 
 const MyJobsApplication = () => {
 
 
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
+    const [isFetching, setIsFetching] = useState(false)
 
     const { isLoading, data } = useQuery<RecentApplication>({
         queryKey: ['recent_application'],
         queryFn: () => recent_application({ page: page + 1, limit, days: 365 }),
     })
+
+
+    const handleExport = async () => {
+        setIsFetching(true)
+        try {
+            const response = await api.get(ApiStrings.APPLICATIONS_EXPORT, {
+                responseType: 'blob',
+            })
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a')
+            link.href = url
+
+            link.setAttribute('download', 'export.xlsx')
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+        } catch (error) {
+            toast.error("Export Fail")
+        } finally {
+            setIsFetching(false)
+        }
+    }
+
 
     const columns: ColumnDef<ApplicantsEntity>[] = [
         {
@@ -89,9 +116,9 @@ const MyJobsApplication = () => {
         <>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold tracking-tight">Applications</h2>
-                <Button variant="outline">
+                <Button onClick={handleExport} disabled={isFetching} variant="outline">
                     <Download className="mr-2 h-4 w-4" />
-                    Export
+                    {isFetching ? 'Exporting...' : 'Export'}
                 </Button>
             </div>
             <DataTable

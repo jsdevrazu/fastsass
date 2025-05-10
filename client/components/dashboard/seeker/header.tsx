@@ -19,7 +19,7 @@ const SeekerDashboardHeader = () => {
                 <Avatar>
                     <AvatarImage className=" object-cover" src={`${baseURLPhoto(user?.avatar ?? '')}?height=32&width=32`} alt="User" />
                     <AvatarFallback>
-                        {user?.first_name.slice(0, 2)}
+                        {user?.first_name?.slice(0, 2)}
                     </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium">{user?.first_name} {user?.last_name}</span>

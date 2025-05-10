@@ -42,7 +42,7 @@ export default function TextEditor(props: TextEditorProps) {
         value={value}
         onChange={onChange as any}
         modules={modules}
-        className="quill-app"
+        className="quill-app overflow-hidden"
       />
     </div>
   );

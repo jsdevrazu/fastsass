@@ -52,7 +52,7 @@ const Candidates = () => {
                             src={`${baseURLPhoto(row.original?.avatar)}?height=32&width=32&text=${row.original.avatar.charAt(0)}`}
                             alt={row.original.first_name}
                         />
-                        <AvatarFallback>{row.original.first_name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{row.original.first_name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                         <div className="font-medium">{row.original.first_name} {row.original.last_name}</div>

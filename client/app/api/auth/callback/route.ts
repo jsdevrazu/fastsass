@@ -27,13 +27,13 @@ export async function GET(req: NextRequest) {
         cookie.set("access_token", token);
         if (data.user?.role === 'job_seeker') {
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/seeker/dashboard`);
-        } else if (data.user?.role === 'job_seeker') {
+        } else if (data.user?.role === 'employer') {
             return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/employer`);
         } else {
-            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}`);
+            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/`);
         }
 
     } catch (err) {
-        return NextResponse.redirect("http://localhost:3000/login?error=invalid_token");
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`);
     }
 }

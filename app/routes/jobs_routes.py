@@ -588,7 +588,7 @@ def update_profile_view(user_id: str):
         "message": "View Update"
     }
 
-@router.get('/export')
+@router.get('/applications/export')
 def export_applications(user=Depends(require_role('employer'))):
     try:
         applications_cursor = db.applications.find(

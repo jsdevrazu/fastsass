@@ -32,6 +32,7 @@ interface User {
   website: string;
   education: Education
   comapny: Company
+  is_active: boolean
 }
 interface SkillsEntity {
   name: string;

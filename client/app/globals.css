@@ -33,6 +33,14 @@ body {
   color: #e0e0e0; 
 }
 
+.dark .ql-toolbar.ql-snow{
+  border: 1px solid #222f44 !important;
+}
+
+.dark .ql-container.ql-snow{
+  border: 1px solid #222f44 !important;
+}
+
 .dark .job_description span{
   background-color: transparent !important;
   color: #f8fafc !important;

@@ -12,7 +12,6 @@ import {
   User,
   LogOut,
   Users,
-  BarChart3,
   Building2
 } from "lucide-react"
 import { useAuthStore } from "@/store/store"
@@ -70,11 +69,6 @@ const navItemsEmployer = [
     icon: Users,
   },
   {
-    title: "Analytics",
-    href: "/employer/analytics",
-    icon: BarChart3,
-  },
-  {
     title: "Company Profile",
     href: "/employer/company-profile",
     icon: Building2,
@@ -111,7 +105,7 @@ const SeekerDashboardSidebar = () => {
         <nav className="grid gap-1 px-2">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname.startsWith(item.href)
+            const isActive = pathname === item.href 
             return (
               <Link
                 key={item.href}

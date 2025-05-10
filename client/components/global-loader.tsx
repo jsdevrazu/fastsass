@@ -2,7 +2,7 @@
 
 import { useAuthStore } from "@/store/store"
 import { useEffect } from "react"
-import Image from "next/image"
+import Logo from "@/components/logo"
 
 export function GlobalLoader() {
     const { loading, initialLoading } = useAuthStore()
@@ -14,9 +14,9 @@ export function GlobalLoader() {
     if (!loading) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
             <div className="flex flex-col items-center gap-2">
-                <Image src={'/logo_loading.png'} alt="Fastsass" width={400} height={400} />
+                <Logo />
             </div>
         </div>
     )

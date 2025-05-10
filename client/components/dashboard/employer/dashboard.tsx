@@ -26,6 +26,7 @@ import { employer_active_jobs, get_employer_stats, recent_application } from "@/
 import JobSeekerDashboardLoading from "@/components/dashboard/seeker/dashboard-loading"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/data-table"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default function EmployerDashboard() {
 
@@ -40,7 +41,7 @@ export default function EmployerDashboard() {
             },
             {
                 queryKey: ["recent_application"],
-                queryFn: () => recent_application({ page: page + 1, limit, days: 10}),
+                queryFn: () => recent_application({ page: page + 1, limit, days: 10 }),
             },
             {
                 queryKey: ["seeker-dashboard-stats"],
@@ -181,7 +182,7 @@ export default function EmployerDashboard() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    {activeDataJobs?.map((job) => (
+                                    {activeDataJobs?.length > 0 ? activeDataJobs?.map((job) => (
                                         <div key={job._id} className="space-y-2">
                                             <div className="flex items-start justify-between">
                                                 <div>
@@ -208,7 +209,11 @@ export default function EmployerDashboard() {
                                                 </Button>
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : <EmptyState
+                                        icon={Briefcase}
+                                        title="No active jobs available"
+                                        description="There are currently no acive job listings available. Please check back later or create an alert to be notified when new jobs are posted."
+                                    />}
                                 </div>
                             </CardContent>
                         </Card>

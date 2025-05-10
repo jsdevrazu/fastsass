@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CardContent, CardFooter } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Github, Linkedin } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +14,8 @@ import { useMutation } from "@tanstack/react-query"
 import { register_user } from "@/lib/apis/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import SocialMediaButtonLogin from "@/components/social-button"
+
 
 
 const SignupForm = () => {
@@ -128,16 +129,7 @@ const SignupForm = () => {
                         <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="w-full">
-                        <Github className="mr-2 h-4 w-4" />
-                        Github
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                        <Linkedin className="mr-2 h-4 w-4" />
-                        LinkedIn
-                    </Button>
-                </div>
+                <SocialMediaButtonLogin role={role} />
             </CardContent>
             <CardFooter className="flex flex-col">
                 <div className="text-sm text-muted-foreground">

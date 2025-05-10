@@ -24,6 +24,7 @@ const ApiStrings = {
     GET_COMPANIES: "/job/companies",
     MY_JOB: "/job/my-jobs",
     CANDIDATES: "/job/candidates",
+    APPLICATIONS_EXPORT: "/job/applications/export",
     SINGLE_JOB: (id:string) => `/job/${id}/detail`,
     APPLY_JOB: (id:string) => `/job/apply/${id}`,
     REVIEW: (id:string) => `/job/review/${id}`,

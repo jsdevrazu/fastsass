@@ -1,72 +1,17 @@
 "use client"
-
 import type React from "react"
-
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { Lock } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useMutation } from "@tanstack/react-query"
-import { change_password, delete_me } from "@/lib/apis/auth"
-import { ChangePasswordFormData, changePasswordSchema } from "@/validation/auth.validation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/store/store"
-import ErrorMessage from "@/components/error-message"
+import ChangePassword from "@/components/account/change-password"
+import DeleteAccount from "@/components/account/delete-account"
 
 export default function JobSeekerSettingsPage() {
-    const { register, handleSubmit, formState: { errors } } = useForm<ChangePasswordFormData>({
-        resolver: zodResolver(changePasswordSchema),
-    });
-    const router = useRouter()
-    const { logout } = useAuthStore()
 
-
-    const { isPending, mutate } = useMutation({
-        mutationFn: change_password,
-        onSuccess: () =>{
-            toast.success("Password Update Successfully")
-            logout()
-            router.push('/login')
-        },
-        onError: (error) =>{
-            toast.error(error.message)
-        }
-    })
-
-    const { isPending: loading, mutate: muFn } = useMutation({
-        mutationFn: delete_me,
-        onSuccess: () =>{
-            toast.success("Your Account Has been deleted")
-            logout()
-            router.push('/login')
-        },
-        onError: (error) =>{
-            toast.error(error.message)
-        }
-    })
-
-    const handleChangePasswordHandler = (data: ChangePasswordFormData) => {
-
-        const payload = {
-            current_password: data.current_password,
-            new_password: data.new_password
-        }
-        mutate(payload)
-    }
-
-
-    const deleteAccount = () =>{
-        muFn()
-    }
 
     return (
         <main className="flex-1 overflow-auto">
@@ -85,67 +30,8 @@ export default function JobSeekerSettingsPage() {
                     </TabsList>
 
                     <TabsContent value="account" className="space-y-4">
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Change Password</CardTitle>
-                                <CardDescription>Update your password to keep your account secure</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="current-password">Current Password</Label>
-                                    <div className="relative">
-                                        <div className="absolute top-3 left-0 flex items-center pl-3">
-                                            <Lock className="h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                        <Input id="current-password" type="password" className="pl-10" {...register('current_password')} error={errors?.current_password?.message} />
-                                        {errors.current_password && <ErrorMessage message={errors.current_password.message ?? ''} />}
-                                        
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="new-password">New Password</Label>
-                                    <div className="relative">
-                                        <div className="absolute top-3 left-0 flex items-center pl-3">
-                                            <Lock className="h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                        <Input id="new-password" type="password" className="pl-10" {...register('new_password')} error={errors?.new_password?.message} />
-                                        {errors.new_password && <ErrorMessage message={errors.new_password.message ?? ''} />}
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                    <div className="relative">
-                                        <div className="absolute top-3 left-0 flex items-center pl-3">
-                                            <Lock className="h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                        <Input id="confirm-password" type="password" className="pl-10" {...register('confirm_password')} error={errors?.confirm_password?.message} />
-                                        {errors.confirm_password && <ErrorMessage message={errors.confirm_password.message ?? ''} />}
-                                    </div>
-                                </div>
-                                <Button onClick={handleSubmit(handleChangePasswordHandler)} disabled={isPending} type="submit">
-                                    {isPending ? 'loading...' : 'Update Password'}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Delete Account</CardTitle>
-                                <CardDescription>Permanently delete your account and all of your data</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="rounded-md bg-destructive/10 p-4 text-destructive">
-                                    <p className="text-sm">
-                                        Warning: Deleting your account is permanent and cannot be undone. All your data, including your
-                                        profile, applications, and saved jobs will be permanently removed.
-                                    </p>
-                                </div>
-                                <Button disabled={loading} onClick={deleteAccount} variant="destructive" type="button">
-                                    {loading ? 'loading..' : 'Delete Account'}
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <ChangePassword />
+                        <DeleteAccount />
                     </TabsContent>
 
                     <TabsContent value="notifications" className="space-y-4">
@@ -433,17 +319,5 @@ export default function JobSeekerSettingsPage() {
                 </Tabs>
             </div>
         </main>
-    )
-}
-
-function Badge({ variant, className, ...props }: { variant: string; className?: string; children: React.ReactNode }) {
-    return (
-        <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${variant === "outline"
-                ? "border-border text-foreground hover:bg-muted/50"
-                : "border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
-                } ${className}`}
-            {...props}
-        />
     )
 }

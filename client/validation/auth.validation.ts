@@ -17,19 +17,19 @@ export const registerSchema = z.object({
     .any()
     .refine((file) => file instanceof File, "Image is required")
 })
-.refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-})
-.superRefine((data, ctx) => {
-  if (data.role === "employer" && (!data.company_name || data.company_name.trim() === "")) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["company_name"],
-      message: "Company name is required for employers",
-    });
-  }
-});
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === "employer" && (!data.company_name || data.company_name.trim() === "")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["company_name"],
+        message: "Company name is required for employers",
+      });
+    }
+  });
 
 export const changePasswordSchema = z.object({
   current_password: z.string().min(6, "Password must be at least 6 characters"),
@@ -43,7 +43,7 @@ export const changePasswordSchema = z.object({
 const optionalUrl = (fieldName: string) =>
   z.string()
     .optional()
-    .or(z.literal('')) 
+    .or(z.literal(''))
     .refine(val => val === '' || z.string().url().safeParse(val).success, {
       message: `Invalid ${fieldName} URL`,
     });
@@ -66,12 +66,12 @@ export const companySchema = z.object({
   facebook: optionalUrl("Facebook"),
   instagram: optionalUrl("Instagram"),
   contact_email: z
-  .string()
-  .optional()
-  .or(z.literal(''))
-  .refine(val => val === '' || z.string().email().safeParse(val).success, {
-    message: "Invalid email",
-  }),
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(val => val === '' || z.string().email().safeParse(val).success, {
+      message: "Invalid email",
+    }),
   phone_number: z.string().optional(),
 })
 
@@ -93,6 +93,14 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   })
 
+export const profileSchema = z.object({
+  first_name: z.string().min(2, "First name is required"),
+  last_name: z.string().min(2, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  avatar: z.any(),
+})
+
+export type ProfileFormValues = z.infer<typeof profileSchema>
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
