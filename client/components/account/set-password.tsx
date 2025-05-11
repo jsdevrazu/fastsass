@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Lock } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { useMutation } from "@tanstack/react-query"
-import { change_password } from "@/lib/apis/auth"
-import { ChangePasswordFormData, changePasswordSchema } from "@/validation/auth.validation"
+import { set_password } from "@/lib/apis/auth"
+import { SetPasswordFormValues, setPasswordSchema } from "@/validation/auth.validation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -17,8 +17,8 @@ import ErrorMessage from "@/components/error-message"
 
 const ChangePassword = () => {
 
-    const { register, handleSubmit, formState: { errors } } = useForm<ChangePasswordFormData>({
-        resolver: zodResolver(changePasswordSchema),
+    const { register, handleSubmit, formState: { errors } } = useForm<SetPasswordFormValues>({
+        resolver: zodResolver(setPasswordSchema),
     });
 
     const router = useRouter()
@@ -26,7 +26,7 @@ const ChangePassword = () => {
 
 
     const { isPending, mutate } = useMutation({
-        mutationFn: change_password,
+        mutationFn: set_password,
         onSuccess: () => {
             toast.success("Password Update Successfully")
             logout()
@@ -37,13 +37,8 @@ const ChangePassword = () => {
         }
     })
 
-    const handleChangePasswordHandler = (data: ChangePasswordFormData) => {
-
-        const payload = {
-            current_password: data.current_password,
-            new_password: data.new_password
-        }
-        mutate(payload)
+    const handleChangePasswordHandler = (data: SetPasswordFormValues) => {
+        mutate(data.new_password)
     }
 
 
@@ -51,29 +46,19 @@ const ChangePassword = () => {
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Change Password</CardTitle>
-                    <CardDescription>Update your password to keep your account secure</CardDescription>
+                    <CardTitle>Set Your Password</CardTitle>
+                    <CardDescription>Set your password to keep your account secure</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="current-password">Current Password</Label>
+                        <Label htmlFor="current-password">New Password</Label>
                         <div className="relative">
                             <div className="absolute top-3 left-0 flex items-center pl-3">
                                 <Lock className="h-4 w-4 text-muted-foreground" />
                             </div>
-                            <Input id="current-password" type="password" className="pl-10" {...register('current_password')} error={errors?.current_password?.message ?? ''} />
-                            {errors.current_password && <ErrorMessage message={errors.current_password.message ?? ''} />}
-
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <div className="relative">
-                            <div className="absolute top-3 left-0 flex items-center pl-3">
-                                <Lock className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <Input id="new-password" type="password" className="pl-10" {...register('new_password')} error={errors?.new_password?.message ?? ''} />
+                            <Input id="current-password" type="password" className="pl-10" {...register('new_password')} error={errors?.new_password?.message ?? ''} />
                             {errors.new_password && <ErrorMessage message={errors.new_password.message ?? ''} />}
+
                         </div>
                     </div>
                     <div className="space-y-2">

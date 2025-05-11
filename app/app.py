@@ -3,6 +3,7 @@ from app.routes.auth_routes import router as auth_routes
 from app.routes.payment_routes import router as payment_routes
 from app.routes.admin_routes import router as admin_routes
 from app.routes.jobs_routes import router as posts_routes
+from app.routes.notification_routes import router as notification_routes
 from fastapi.staticfiles import StaticFiles
 from app.constant.index import API_PREFIX
 from starlette.middleware.sessions import SessionMiddleware
@@ -49,6 +50,7 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(auth_routes, prefix=f"{API_PREFIX}/auth")
+app.include_router(notification_routes, prefix=f"{API_PREFIX}/notification")
 app.include_router(payment_routes, prefix=f"{API_PREFIX}/pay")
 app.include_router(admin_routes, prefix=f"{API_PREFIX}/admin")
 app.include_router(posts_routes, prefix=f"{API_PREFIX}/job")

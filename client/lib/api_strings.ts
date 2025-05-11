@@ -7,6 +7,7 @@ const ApiStrings = {
     LOGOUT: "/auth/logout",
     REFRESH_TOKEN: "/auth/refresh",
     CHANGE_PASSWORD: "/auth/change-password",
+    SET_PASSWORD: "/auth/set-password",
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
     COMPANY_PROFILE: "/auth/company-profile",
@@ -35,6 +36,8 @@ const ApiStrings = {
     CREATE_PAYMENT_URL: '/pay/subcribe',
     BILLING_PORTAL: '/pay/billing-portal',
     PAYMENT_DETAILS: '/pay/details',
+    // Notification
+    UPDATE_NOTIFICATION: '/notification/update'
   };
   
   export default ApiStrings;

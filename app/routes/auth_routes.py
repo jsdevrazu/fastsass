@@ -1,5 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, Response, Request, Form, Depends
-from app.validation_schema.user_validation_schema import LoginSchema, ForgotPasswordSchema, ResetPasswordSchema, TokenSchema, ChangePasswordSchema
+from app.validation_schema.user_validation_schema import LoginSchema, ForgotPasswordSchema, ResetPasswordSchema, TokenSchema, ChangePasswordSchema, SetPasswordSchema
 from app.constant.index import UPLOAD_DIR, UPLOAD_RESUME_DIR, UPLOAD_LOGO_DIR
 from pydantic import ValidationError, EmailStr
 from typing import Literal
@@ -108,7 +108,7 @@ async def github_callback(request: Request):
     username = user_data.get("login")
     avatar_url = user_data.get("avatar_url")
 
-    existing_user = db.users.find_one({"email": email})
+    existing_user = db.users.find_one({"email": f"{username}@github.com"})
     company_id = None
     if "employer" in role:
            company = db.companies.insert_one({
@@ -222,7 +222,7 @@ async def login(res: Response, body:LoginSchema):
         if not db_user:
             api_error(400, "User doesn't exit")
 
-        if db_user['auth_provider'] != 'email':
+        if not db_user.get('password'):
             api_error(400, f'You are login {db_user['auth_provider']} please set password then you use login via password and email')
         
         match_password = verify_password(body.password, db_user['password'])
@@ -237,7 +237,7 @@ async def login(res: Response, body:LoginSchema):
         if db_user['role'] == 'employer':
             db_user['company_id'] = str(db_user['company_id'])
         
-        full_name = f"{db_user['first_name']} {db_user['last_name']}"
+        full_name = f"{db_user.get('first_name', '')} {db_user.get('last_name', '')}"
         token = fetch_token(full_name, db_user['email'])
         access_token = token['access_token']
         refresh_token = token['refresh_token']
@@ -421,6 +421,9 @@ def get_current_user_profile(user=Depends(get_current_user)):
                     "auth_provider": 1,
                     "education": 1,
                     "github_profile": 1,
+                    "notification_feature": 1,
+                    "prefer_settings": 1,
+                    "privacy_feature": 1,
                     "linkedin_profile": 1,
                     "certifications": 1,
                     "comapny._id": {"$toString": "$comapny._id"},
@@ -447,6 +450,20 @@ def get_current_user_profile(user=Depends(get_current_user)):
     return {
         "message": "success",
         "user": user[0]
+    }
+
+
+@router.post("/set-password")
+def set_new_password(body:SetPasswordSchema, user=Depends(get_current_user)):
+
+    h_password = hash_password(body.password)
+    db.users.update_one(
+        {"_id": ObjectId(user['_id'])},
+        {"$set": {"password": h_password}}
+    )
+
+    return {
+        "message": "Password Change Successfully"
     }
 
 

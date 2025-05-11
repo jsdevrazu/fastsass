@@ -28,3 +28,6 @@ class TokenSchema(BaseModel):
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
+
+class SetPasswordSchema(BaseModel):
+    password: str

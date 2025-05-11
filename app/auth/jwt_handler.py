@@ -56,7 +56,7 @@ async def get_current_user(req: Request):
         api_error(401, "Login required pls!")
     try:
         payload = decoded_token(token)
-        email = payload.get('email')
+        email = payload.get('email') or payload.get('sub')
         if not email:
             api_error(401, 'Invalid Token')
         user = db.users.find_one({"email": email})

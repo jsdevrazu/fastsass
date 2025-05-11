@@ -9,23 +9,23 @@ interface Payload {
   job_type: string;
   apply_settings: string;
   questions?: {
-      value: string;
+    value: string;
   }[];
 }
 
-interface ReviewPayload{
-    id: string;
-    title: string;
-    review: string;
-    rating: number;
-    employe_status: string;
-    props: string[];
-    cons: string[];
-    is_recommend: boolean;
+interface ReviewPayload {
+  id: string;
+  title: string;
+  review: string;
+  rating: number;
+  employe_status: string;
+  props: string[];
+  cons: string[];
+  is_recommend: boolean;
 }
 
 
-interface ApplyFormPayload{
+interface ApplyFormPayload {
   id: string,
   data: {
     first_name: string
@@ -38,7 +38,19 @@ interface ApplyFormPayload{
   }
 }
 
-interface ResetPasswordPayload{
-  otp:string
+interface ResetPasswordPayload {
+  otp: string
   new_password: string
+}
+
+interface NotificationPayload {
+  notification_feature: {
+    application_update: boolean
+    interview_invitation: boolean
+    job_alert: boolean
+    job_alert_frequency: string
+    job_recomandation: boolean
+    marketing_communication: boolean
+    recomandation_frequency: string
+  }
 }

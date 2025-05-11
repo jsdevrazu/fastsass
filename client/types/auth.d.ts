@@ -15,6 +15,7 @@ interface User {
   last_name: string;
   email: string;
   password: string;
+  auth_provider: string;
   avatar: string;
   role: string;
   is_verified: boolean;
@@ -32,6 +33,20 @@ interface User {
   website: string;
   education: Education
   comapny: Company
+  notification_feature: Notification,
+  privacy_feature: {
+    profile_visibility: boolean;
+    contact_information: boolean;
+    current_employer: boolean;
+    activity_feed: boolean;
+  }
+  prefer_settings:{
+    job_type: string;
+    work_location: string;
+    salary_range: string;
+    experience_level: string;
+    preferred_industry: string;
+}
   feature: {
     max_job_post: number
     current_plan_name: string
@@ -42,6 +57,17 @@ interface User {
     is_active: boolean
   }
 }
+
+interface Notification {
+  job_recomandation: boolean;
+  application_update: boolean;
+  interview_invitation: boolean;
+  job_alert: boolean;
+  marketing_communication: boolean;
+  job_alert_frequency: string;
+  recomandation_frequency: string;
+}
+
 interface SkillsEntity {
   name: string;
   level: "beginner" | "intermediate" | "advanced" | "expert";

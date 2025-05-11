@@ -33,7 +33,7 @@ export const registerSchema = z.object({
 
 export const changePasswordSchema = z.object({
   current_password: z.string().min(6, "Password must be at least 6 characters"),
-  new_password: z.string().min(1, "Password is required"),
+  new_password: z.string().min(6, "Password must be at least 6 characters"),
   confirm_password: z.string(),
 }).refine((data) => data.new_password === data.confirm_password, {
   message: "Passwords do not match",
@@ -100,6 +100,43 @@ export const profileSchema = z.object({
   avatar: z.any(),
 })
 
+export const setPasswordSchema = z.object({
+  new_password: z.string().min(6, "Password must be at least 6 characters"),
+  confirm_password: z.string(),
+}).refine((data) => data.new_password === data.confirm_password, {
+  message: "Passwords do not match",
+  path: ["confirm_password"],
+})
+
+export const emailNotificationSchema = z.object({
+  job_recomandation: z.boolean().default(false),
+  application_update: z.boolean().default(false),
+  interview_invitation: z.boolean().default(false),
+  job_alert: z.boolean().default(false),
+  marketing_communication: z.boolean().default(false),
+  job_alert_frequency: z.string().default('realtime'),
+  recomandation_frequency: z.string().default('daily'),
+});
+
+export const privacySchema = z.object({
+  profile_visibility: z.boolean().default(false),
+  contact_information: z.boolean().default(false),
+  current_employer: z.boolean().default(false),
+  activity_feed: z.boolean().default(false),
+});
+
+export const preferSchema = z.object({
+  job_type: z.string().default('Full-time'),
+  work_location: z.string().default('remote'),
+  salary_range: z.string().default('50k-75k'),
+  experience_level: z.string().default('mid'),
+  preferred_industry: z.string().default('Information Technology (IT)'),
+});
+
+export type SetPasswordFormValues = z.infer<typeof setPasswordSchema>;
+export type PreferFormValues = z.infer<typeof preferSchema>;
+export type PrivacyFormValues = z.infer<typeof privacySchema>;
+export type EmailFormValues = z.infer<typeof emailNotificationSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 export type LoginFormData = z.infer<typeof loginSchema>;

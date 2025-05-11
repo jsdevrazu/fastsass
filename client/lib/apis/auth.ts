@@ -17,6 +17,11 @@ export const change_password = async (credentials: {
     return response.data;
 };
 
+export const set_password = async (password: string) => {
+    const response = await api.post(ApiStrings.SET_PASSWORD, {password});
+    return response.data;
+};
+
 export const forgot_password = async (email:string) => {
     const response = await api.post(ApiStrings.FORGOT_PASSWORD, {email});
     return response.data;

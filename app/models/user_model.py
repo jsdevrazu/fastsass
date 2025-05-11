@@ -38,6 +38,28 @@ class EmployerFeature(BaseModel):
     is_active: bool
     stripe_customer_ids: List[str]
 
+class NotificationFeature(BaseModel):
+    job_recomandation: Optional[bool] = False
+    application_update: Optional[bool] = False
+    interview_invitation: Optional[bool] = False
+    job_alert: Optional[bool] = False
+    marketing_communication: Optional[bool] = False
+    job_alert_frequency: Optional[str] = ''
+    recomandation_frequency: Optional[str] = ''
+
+class PrivacyFeature(BaseModel):
+    profile_visibility: Optional[bool] = False
+    contact_information: Optional[bool] = False
+    current_employer: Optional[bool] = False
+    activity_feed: Optional[bool] = False
+
+class PreferencesFeature(BaseModel):
+    job_type: Optional[str] = ''
+    work_location: Optional[str] = ''
+    salary_range: Optional[str] = ''
+    experience_level: Optional[str] = ''
+    preferred_industry: Optional[str] = ''
+
 class User(BaseModel):
     first_name: str
     last_name: str
@@ -65,7 +87,9 @@ class User(BaseModel):
     auth_provider: Optional[str] = ''
     education: Optional[Education] = None
     feature: Optional[EmployerFeature] = None
-
+    notification_feature: Optional[NotificationFeature] = None
+    privacy_feature: Optional[PrivacyFeature] = None
+    preferences_feature: Optional[PreferencesFeature] = None
 
 
     class Config:

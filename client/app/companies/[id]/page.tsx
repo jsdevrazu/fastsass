@@ -114,7 +114,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                 <CardContent>
                                     <ul className="space-y-2">
                                         {
-                                            Object.entries(company?.comapnies_calture)?.map(([value], index) => (
+                                            company?.comapnies_calture && Object.entries(company?.comapnies_calture)?.map(([value], index) => (
                                                 <li key={index} className="flex items-start gap-2 capitalize">
                                                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                                     <span>{value}</span>
