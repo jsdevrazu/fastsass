@@ -53,7 +53,7 @@ const Applications = () => {
             id: "actions",
             header: "Actions",
             cell: ({ row }) => (
-                <Link href={`/${row.original._id}`}>
+                <Link href={`/jobs/${row.original.job?.slug}`}>
                     <Button variant="outline" size="sm">
                         View Job
                     </Button>

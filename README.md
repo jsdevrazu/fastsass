@@ -79,6 +79,8 @@ uv.lock # Uvicorn lock file for deployment
     uvicorn main:app --reload
     ```
 <!-- uv pip freeze > uv.lock -->
+<!-- stripe listen --forward-to localhost:8000/api/v1/pay/webhook -->
+
 7. The app will be running on `http://localhost:8000`.
 
 ## Features

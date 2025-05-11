@@ -4,7 +4,7 @@ from app.utils.error_handler import api_error
 from app.validation_schema.post_validation_schema import JobSchema
 from bson import ObjectId
 from app.dependencies.subscription import require_active_subscription
-from app.auth.jwt_handler import require_role, get_current_user
+from app.auth.jwt_handler import require_role, get_current_user, optional_get_current_user
 from app.utils.helper import slugify
 from datetime import datetime, timedelta, timezone
 from app.db.mongo import db
@@ -133,56 +133,100 @@ def get_all_jobs(
     except PyMongoError as error:
         api_error(500, str(error))
 
+
 @router.get('/{slug}/detail')
-def get_single_job(slug: str):
-    cursor_job = db.jobs.aggregate([
+def get_single_job(
+    slug: str,
+    user: Optional[dict] = Depends(optional_get_current_user)
+):
+    pipeline = [
         {"$match": {"slug": slug}},
         {
-            "$lookup":{
+            "$lookup": {
                 "from": "companies",
-                 "localField": "company_name",
-                "foreignField": "_id", 
+                "localField": "company_name",
+                "foreignField": "_id",
                 "as": "company"
-
             }
         },
         {"$unwind": {"path": "$company", "preserveNullAndEmptyArrays": True}},
-        {
-                "$project": {
-                    "_id": {"$toString": "$_id"}, 
-                    "title": 1,
-                    "body": 1,
-                    "meta_description": 1,
-                    "min_salary": 1,
-                    "max_salary": 1,
-                    "location": 1,
-                    "job_type": 1,
-                    "slug": 1,
-                    "created_at": 1,
-                    "updated_at": 1,
-                    "location": 1,
-                    "job_type": 1,
-                    "skills": 1,
-                    "questions": 1,
-                    "apply_settings": 1,
-                    "application_email": 1,
-                    "application_link": 1,
-                    "job_status": 1,
-                    "company._id": {"$toString": "$company._id"},
-                    "company.name": 1,
-                    "company.logo": 1,
-                    "company.company_description": 1,
+    ]
+
+    if user:
+        pipeline += [
+            {
+                "$lookup": {
+                    "from": "save_jobs",
+                    "let": {"jobId": "$_id"},
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$job_id", "$$jobId"]},
+                                        {"$eq": ["$user_id", ObjectId(user["_id"])]}
+                                    ]
+                                }
+                            }
+                        },
+                        {"$limit": 1}
+                    ],
+                    "as": "saved"
+                }
+            },
+            {
+                "$addFields": {
+                    "isBookmarked": {"$gt": [{"$size": "$saved"}, 0]}
                 }
             }
-    ])
-    if not cursor_job:
-        api_error(404, "Job not found")
+        ]
+    else:
+        pipeline += [
+            {
+                "$addFields": {
+                    "isBookmarked": False
+                }
+            }
+        ]
 
-    job = list(cursor_job)[0]
+    pipeline += [
+        {
+            "$project": {
+                "_id": {"$toString": "$_id"},
+                "title": 1,
+                "body": 1,
+                "meta_description": 1,
+                "min_salary": 1,
+                "max_salary": 1,
+                "location": 1,
+                "job_type": 1,
+                "slug": 1,
+                "created_at": 1,
+                "updated_at": 1,
+                "skills": 1,
+                "questions": 1,
+                "apply_settings": 1,
+                "application_email": 1,
+                "application_dead_line": 1,
+                "application_link": 1,
+                "job_status": 1,
+                "isBookmarked": 1,
+                "company._id": {"$toString": "$company._id"},
+                "company.name": 1,
+                "company.logo": 1,
+                "company.company_description": 1,
+            }
+        }
+    ]
+
+    cursor_job = db.jobs.aggregate(pipeline)
+    job_list = list(cursor_job)
+    if not job_list:
+        api_error(404, "Job not found")
 
     return {
         "message": "success",
-        "job": job
+        "job": job_list[0]
     }
     
     
@@ -292,18 +336,27 @@ def get_apply_jobs(
             }
             },
             {"$unwind": {"path": "$job", "preserveNullAndEmptyArrays": True}},
+            {
+                "$lookup": {
+                    "from": "companies",
+                    "localField": "job.company_name",
+                    "foreignField": "_id",
+                    "as": "company"
+                }
+            },
+            {"$unwind": {"path": "$company", "preserveNullAndEmptyArrays": True}},
             {"$skip": skip},
             {"$limit": limit},
             {
                 "$project": {
                     "_id": {"$toString": "$_id"},
                     "job_id": {"$toString": "$job._id"},
-                    "company_name": 1,
                     "application_status": 1,
                     "job.title": 1,
                     "job.created_at": 1,
                     "job.location": 1,
                     "job.slug": 1,
+                    "company_name": "$company.name"
 
                 }
             }
@@ -350,18 +403,27 @@ def recent_applied_jobs(
                 }
             },
             {"$unwind": {"path": "$job", "preserveNullAndEmptyArrays": True}},
+            {
+                "$lookup": {
+                    "from": "companies",
+                    "localField": "job.company_name",
+                    "foreignField": "_id",
+                    "as": "company"
+                }
+            },
+            {"$unwind": {"path": "$company", "preserveNullAndEmptyArrays": True}},
             {"$skip": skip},
             {"$limit": limit},
             {
                 "$project": {
                     "_id": {"$toString": "$_id"},
                     "job_id": {"$toString": "$job._id"},
-                    "company_name": 1,
                     "application_status": 1,
                     "job.title": 1,
                     "job.created_at": 1,
                     "job.location": 1,
                     "job.slug": 1,
+                    "company_name": "$company.name"
 
                 }
             },
@@ -387,43 +449,74 @@ def get_recommended_jobs(
     user=Depends(get_current_user)
 ):
     skip = (page - 1) * limit
-    try:
-        user_applications = db.applications.find(
+
+    applied_jobs = list(db.applications.find(
             {"applicate": ObjectId(user['_id'])},
             {"job_id": 1}
-        )
-        applied_job_ids = [app["job_id"] for app in user_applications]
+        ))
+    
+    applied_job_ids = [item["job_id"] for item in applied_jobs]
 
-        recent_job = db.jobs.find_one(
+    recent_job = db.jobs.find_one(
             {"_id": applied_job_ids[-1]} if applied_job_ids else {},
             {"job_type": 1, "location": 1}
         )
 
-        filters = {}
-
-        if recent_job:
-            if "job_type" in recent_job:
+    filters = {}
+    if recent_job:
+            if recent_job.get("job_type"):
                 filters["job_type"] = recent_job["job_type"]
-            if "location" in recent_job:
+            if recent_job.get("location"):
                 filters["location"] = recent_job["location"]
 
-
-        recommended_jobs_cursor = db.jobs.find(
+    pipeline = [
             {
-                **filters,
-                "_id": {"$nin": applied_job_ids}
-            }
-        ).skip(skip).limit(limit)
+                "$match": {
+                    **filters,
+                    "_id": {"$nin": applied_job_ids}
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "companies",
+                    "localField": "company_name",
+                    "foreignField": "_id",
+                    "as": "company"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$company",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
+            {
+                "$project": {
+                    "title": 1,
+                    "job_type": 1,
+                    "location": 1,
+                    "slug": 1,
+                    "post_by": 1,
+                    "company_name": "$company.name",
+                    "created_at": 1
+                }
+            },
+            {"$skip": skip},
+            {"$limit": limit}
+        ]
 
-        total = db.jobs.count_documents(filters)
+    recommended_jobs = list(db.jobs.aggregate(pipeline))
 
-        recommended_jobs = []
-        for job in recommended_jobs_cursor:
+    total = db.jobs.count_documents({
+            **filters,
+            "_id": {"$nin": applied_job_ids}
+    })
+
+    for job in recommended_jobs:
             job['_id'] = str(job['_id'])
             job['post_by'] = str(job['post_by'])
-            recommended_jobs.append(job)
 
-        return {
+    return {
             "message": "success",
             "total": total,
             "page": page,
@@ -431,13 +524,9 @@ def get_recommended_jobs(
             "recommended_jobs": recommended_jobs
         }
 
-    except PyMongoError as error:
-        api_error(500, str(error))
-
 
 @router.post('/save/{job_id}')
 def save_job(job_id: str, user=Depends(require_role('job_seeker'))):
-    try:
         job = db.jobs.find_one({"_id": ObjectId(job_id)})
         if not job:
             api_error(404, "Job not found")
@@ -461,9 +550,6 @@ def save_job(job_id: str, user=Depends(require_role('job_seeker'))):
         return {
             "message": "Job Saved Successfully"
         }
-        
-    except PyMongoError as error:
-        api_error(500, str(error))
 
 
 @router.get("/stats")
@@ -513,6 +599,15 @@ def get_saved_jobs(
                 }
             },
             {"$unwind": {"path": "$saved_jobs", "preserveNullAndEmptyArrays": True}}, 
+            {
+                "$lookup": {
+                    "from": "companies",
+                    "localField": "saved_jobs.company_name",
+                    "foreignField": "_id",
+                    "as": "company"
+                }
+            },
+            {"$unwind": {"path": "$company", "preserveNullAndEmptyArrays": True}},
             {"$skip": skip},
             {"$limit": limit},
             {
@@ -522,9 +617,9 @@ def get_saved_jobs(
                    "saved_jobs._id": {"$toString": "$saved_jobs._id"}, 
                     "saved_jobs.title": 1,
                     "saved_jobs.meta_description": 1,
-                    "saved_jobs.company_name": 1,
                     "saved_jobs.location": 1,
                     "saved_jobs.job_type": 1,
+                    "company_name": "$company.name",
                     "saved_jobs.slug": 1,
                     "saved_jobs.created_at": 1,
                     "saved_jobs.updated_at": 1,

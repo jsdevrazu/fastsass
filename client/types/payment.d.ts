@@ -5,3 +5,7 @@
     invoice_pdf_url: string;
   }
   
+
+  interface PortalResponse{
+    url: string
+  }

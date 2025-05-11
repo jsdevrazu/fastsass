@@ -55,10 +55,10 @@ const SavedJobs = () => {
                                 <p className="text-sm text-muted-foreground line-clamp-2">{job.saved_jobs.meta_description}</p>
                                 <div className="flex gap-2">
                                     <Button size="sm" variant="outline" asChild>
-                                        <Link href={`/jobs/${job._id}`}>View</Link>
+                                        <Link href={`/jobs/${job?.saved_jobs?.slug}`}>View</Link>
                                     </Button>
                                     <Button size="sm" asChild>
-                                        <Link href={`/jobs/${job._id}/apply`}>Apply</Link>
+                                        <Link href={`/jobs/${job?.saved_jobs?.slug}/apply`}>Apply</Link>
                                     </Button>
                                 </div>
                             </CardContent>

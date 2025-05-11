@@ -8,6 +8,8 @@ import { ApplyButton } from "@/components/apply-button"
 import moment from "moment"
 import { ShareJobButton } from "@/components/share-job-button"
 import { Metadata } from "next"
+import { format } from 'date-fns'
+import { BookmarkButton } from "@/components/bookmark-button"
 
 type Props = {
   params: { slug: string };
@@ -59,7 +61,10 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
                     <p className="text-sm text-muted-foreground">{job?.company?.company_description}</p>
                   </div>
                 </div>
-                <h1 className="text-3xl font-bold">{job?.title}</h1>
+                 <div className="flex items-center justify-between">
+                  <h1 className="text-3xl font-bold">{job.title}</h1>
+                  <BookmarkButton isBookmarked={job?.isBookmarked} jobId={job?._id} jobTitle={job.title} />
+                </div>
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />
@@ -97,7 +102,7 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>Applications close in {job?.application_dead_line}</span>
+                    <span>Applications close in {format(job?.application_dead_line, "MM/dd/yyyy")}</span>
                   </div>
                   <ApplyButton job={job} className="w-full" />
                   <ShareJobButton jobId={id} jobTitle={job.title} companyName={job.company?.name} className="w-full" />

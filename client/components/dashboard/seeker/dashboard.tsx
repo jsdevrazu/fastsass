@@ -178,15 +178,14 @@ const Dashboard = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Button size="sm" variant="outline" asChild>
-                                            <Link href={`/jobs/${job._id}`}>View</Link>
+                                            <Link href={`/jobs/${job.slug}`}>View</Link>
                                         </Button>
                                         <Button size="sm" asChild>
-                                            <Link href={`/jobs/${job._id}/apply`}>Apply</Link>
+                                            <Link href={`/jobs/${job.slug}/apply`}>Apply</Link>
                                         </Button>
                                     </div>
                                 </div>
                             )) : <>
-
                                 <EmptyState
                                     icon={Briefcase}
                                     title="No Recommended Jobs available For You"

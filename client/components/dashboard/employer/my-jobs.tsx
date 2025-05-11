@@ -16,9 +16,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import EmployerJobsLoading from "@/app/(employer)/employer/my-jobs/loading"
-import { get_my_jobs } from "@/lib/apis/jobs"
+import { delete_job, get_my_jobs } from "@/lib/apis/jobs"
 import { useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { getStatusVariant } from "@/lib/utils"
@@ -27,6 +27,9 @@ import { DataTable } from "@/components/data-table"
 import api from '@/lib/axios'
 import ApiStrings from "@/lib/api_strings"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { OverlayLock } from "@/components/overlay-lock"
+import { useAuthStore } from "@/store/store"
 
 
 const MyJobs = () => {
@@ -34,14 +37,37 @@ const MyJobs = () => {
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
     const [isFetching, setIsFetching] = useState(false)
+    const router = useRouter()
+    const { user } = useAuthStore()
 
 
-    const { isLoading, data } = useQuery<MyJobsResponse>({
+    const { isLoading, data, refetch } = useQuery<MyJobsResponse>({
         queryKey: ['my-jobs'],
         queryFn: () => get_my_jobs({ page: page + 1, limit })
     })
 
     const jobs = data?.jobs ?? []
+
+
+    const { mutate, isPending} = useMutation({
+        mutationFn: delete_job,
+        onSuccess: () =>{
+            refetch()
+            toast.success("Job Delete Successfully")
+        },
+        onError: (error) =>{
+            toast.error(error.message)
+        }
+    })
+
+    const handleDelete = (id:string) =>{
+        if(user?.feature?.is_active){
+            mutate(id)
+        } else {
+            toast.error("Only Premium Plan you delete this job post")
+        }
+    }
+
 
     const columns: ColumnDef<MyJobs>[] = [
         {
@@ -82,11 +108,11 @@ const MyJobs = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Job</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/jobs/${row.original.slug}`)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/employer/edit-job/${row.original.slug}`)}>Edit Job</DropdownMenuItem>
                         <DropdownMenuItem>View Applications</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">Delete Job</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(row.original._id)} className="text-destructive">Delete Job</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -119,6 +145,7 @@ const MyJobs = () => {
 
     return (
         <>
+        <OverlayLock visible={isPending} />
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold tracking-tight">My Jobs</h2>
                 <Button asChild>

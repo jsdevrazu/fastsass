@@ -29,8 +29,11 @@ const ApiStrings = {
     SINGLE_JOB: (id:string) => `/job/${id}/detail`,
     APPLY_JOB: (id:string) => `/job/apply/${id}`,
     REVIEW: (id:string) => `/job/review/${id}`,
+    DELETE: (id:string) => `/job/delete/${id}`,
+    BOOKMARK: (id:string) => `/job/save/${id}`,
     // Payment
     CREATE_PAYMENT_URL: '/pay/subcribe',
+    BILLING_PORTAL: '/pay/billing-portal',
     PAYMENT_DETAILS: '/pay/details',
   };
   

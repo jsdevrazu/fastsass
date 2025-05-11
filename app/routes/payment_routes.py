@@ -8,6 +8,9 @@ from app.db.mongo import db
 from app.utils.send_email import send_email
 from datetime import datetime
 from app.utils.error_handler import api_error
+from app.dependencies.subscription import require_active_subscription
+from app.auth.jwt_handler import require_role
+from bson import ObjectId
 
 router = APIRouter()
 
@@ -36,7 +39,7 @@ async def stripe_webhook(req: Request):
             session = event["data"]["object"]
             customer_email = session.get("customer_email")
             subscription_id = session.get("subscription")
-
+            customer_id = session.get("customer")
             subscription = stripe.Subscription.retrieve(subscription_id, expand=['plan.product'])
             plan_price = subscription['items']['data'][0]['plan']['amount'] / 100 
             next_billing_date = datetime.fromtimestamp(subscription['items']['data'][0]['current_period_end']).strftime('%Y-%m-%d %H:%M:%S')
@@ -66,14 +69,15 @@ async def stripe_webhook(req: Request):
                         "subscription_id": subscription_id,
                         "next_billing_date": next_billing_date,
                         "is_active": True,
-                    }
+                    },
+                    "stripe_customer_id": customer_id
                 }
             })
             
 
             user = db.users.find_one({"email": customer_email})
             if user:
-                await send_email(
+                send_email(
                     email=customer_email,
                     full_name=user['first_name'],
                     temp_id=4,
@@ -90,6 +94,30 @@ async def stripe_webhook(req: Request):
                 )
 
             return {"status": "success"}
+        
+        elif event["type"] == "customer.subscription.deleted":
+            subscription = event["data"]["object"]
+            customer_id = subscription.get("customer")
+            user = db.users.find_one({"stripe_customer_id": customer_id})
+
+            if user:
+                db.users.update_one(
+                    {"_id": user["_id"]},
+                    {"$set": {
+                        "feature": None
+                    }}
+                )
+                send_email(
+                    email=user['email'],
+                    full_name=user.get('first_name', ''),
+                    temp_id=5, 
+                    params={
+                        "name": user.get('first_name', ''),
+                        "dashboard_link": f"{settings.client_url}/employer"
+                    }
+                )
+            return {"status": "subscription cancelled"}
+        
         return {"status": "ignored"}
     except stripe.error.SignatureVerificationError:
         api_error(400, "Invalid signature")
@@ -111,3 +139,36 @@ def get_payment_details(user=Depends(get_current_user)):
         "plan_name": subscription['plan']['product']['name'],
         "invoice_pdf_url": invoice.invoice_pdf
     }
+
+
+@router.get("/billing-portal")
+def create_billing_portal(user=Depends(require_role("employer"))):
+    if not user.get("stripe_customer_id"):
+            return {"error": "Stripe customer ID not found"}
+
+    session = stripe.billing_portal.Session.create(
+            customer=user["stripe_customer_id"],
+            return_url=f"{settings.client_url}/employer/settings"
+        )
+
+    return {"url": session.url}
+
+
+@router.post("/subscription/cancel")
+def cancel_subscription(user=Depends(require_role("employer"))):
+        subscription_id = user['feature']['subscription_id']
+
+        if not subscription_id:
+            api_error(400, "No active subscription found.")
+
+        stripe.Subscription.delete(subscription_id)
+        db.users.update_one(
+            {"_id": ObjectId(user["_id"])},
+            {
+                "$set": {
+                    "feature": None,
+                }
+            }
+        )
+
+        return {"message": "Subscription cancelled successfully."}

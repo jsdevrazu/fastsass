@@ -90,6 +90,7 @@ export default function JobApplicationPage({ job }: { job: JobsEntity }) {
                 github_profile: user?.github_profile ?? '',
                 portfolio: user?.website ?? '',
                 company_name: job?.company?.name,
+                experience: data?.experience,
                 questions_answer: questions.map((question, index) => ({
                     question,
                     answer: data[`question_${index}`]

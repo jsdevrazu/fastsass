@@ -39,6 +39,7 @@ interface JobsEntity {
   application_dead_line: string
   application_email: string
   application_link: string
+  isBookmarked: boolean
 }
 
 

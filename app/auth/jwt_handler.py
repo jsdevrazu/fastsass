@@ -23,7 +23,7 @@ def create_token(data: dict,expire_date: timedelta | None = None):
     if expire_date:
         expire = datetime.now(timezone.utc) + expire_date
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=60)
+        expire = datetime.now(timezone.utc) + timedelta(days=1)
     to_encode.update({"exp": expire})
     token = jwt.encode(to_encode, settings.secret_key, settings.algorithm)
     return token
@@ -74,3 +74,17 @@ def require_role(*allowed_roles):
             api_error(403, 'Permissson denied')
         return user
     return role_checker
+
+def optional_get_current_user(request: Request) -> Optional[dict]:
+    try:
+        token = request.cookies.get("access_token")
+        if not token:
+            return None
+        decoded = decoded_token(token)
+        user = db.users.find_one({"email": decoded["email"]})
+        if user:
+            user["_id"] = str(user["_id"])
+            return user
+        return None
+    except:
+        return None

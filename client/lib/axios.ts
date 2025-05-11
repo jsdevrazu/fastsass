@@ -27,75 +27,13 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-const isTokenExpiringSoon = () => {
-  const accessToken = Cookies.get(ACCESS_TOKEN);
-  if (!accessToken) return true;
-
-  try {
-    const decodedToken = jwtDecode(accessToken);
-    const currentTime = Math.floor(Date.now() / 1000);
-    const bufferTime = 30;
-
-    return decodedToken.exp
-      ? decodedToken.exp - currentTime < bufferTime
-      : false;
-  } catch (e) {
-    return true;
-  }
-};
-
-const refreshAuthToken = async () => {
-  const refreshToken = Cookies.get(REFRESH_TOKEN);
-  if (!refreshToken) {
-    useAuthStore.getState().logout();
-    return;
-  }
-
-  try {
-    const response = await axios.post(ApiStrings.REFRESH_TOKEN, {
-      refreshToken,
-    });
-    const data = response?.data?.data;
-
-    if (!data?.access_token) {
-      useAuthStore.getState().logout();
-    }
-
-    Cookies.set(ACCESS_TOKEN, data.accessToken);
-    Cookies.set(REFRESH_TOKEN, data.refreshToken);
-
-    useAuthStore.setState({
-      user: data?.user,
-      accessToken: data?.access_token,
-      refreshToken: data?.access_token,
-    });
-
-    api.defaults.headers.Authorization = `Bearer ${data.access_token}`;
-    return data.access_token;
-  } catch (error) {
-    useAuthStore.getState().logout();
-    throw new Error("Token refresh failed");
-  }
-};
-
-api.interceptors.request.use(async (config) => {
-  if (await isTokenExpiringSoon()) {
-    try {
-      const newToken = await refreshAuthToken();
-      config.headers.Authorization = `Bearer ${newToken}`;
-    } catch (error) {
-      console.error("Failed to refresh token before request", error);
-    }
-  }
-  return config;
-});
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log("error", error)
+    console.log("error.response?.data", error.response?.data)
     const originalRequest = error.config;
-    if (error.response?.data?.message === "jwt expired" || error.response?.data?.message === 'jwt malformed') {
+    if (error.response?.data?.error === "Invalid or missing token" || error.response?.data?.error === 'Invalid Token' ||  error.response?.data?.error === 'Token is invalid or expired') {
       try {
         const refreshToken = Cookies.get(REFRESH_TOKEN);
         if (!refreshToken) {
@@ -103,8 +41,8 @@ api.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        const { data } = await axios.post(ApiStrings.REFRESH_TOKEN, {
-          refreshToken,
+        const { data } = await api.post(ApiStrings.REFRESH_TOKEN, {
+          refresh_token:refreshToken,
         });
 
         Cookies.set(ACCESS_TOKEN, data.access_token, {

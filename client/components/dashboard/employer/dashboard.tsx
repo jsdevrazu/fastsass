@@ -27,11 +27,15 @@ import JobSeekerDashboardLoading from "@/components/dashboard/seeker/dashboard-l
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/data-table"
 import { EmptyState } from "@/components/ui/empty-state"
+import { format } from "date-fns";
+import { useRouter } from "next/navigation"
+
 
 export default function EmployerDashboard() {
 
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
+    const router = useRouter()
 
     const queries = useQueries({
         queries: [
@@ -198,10 +202,10 @@ export default function EmployerDashboard() {
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <span>Posted {moment(job?.created_at).startOf('day').fromNow()}</span>
                                                 <span>•</span>
-                                                <span>Expires in {job?.application_dead_line}</span>
+                                                <span>Expires in {format(job?.application_dead_line, "MM/dd/yyyy")}</span>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button size="sm" variant="outline">
+                                                <Button onClick={() => router.push(`/jobs/${job?.slug}`)} size="sm" variant="outline">
                                                     View
                                                 </Button>
                                                 <Button size="sm" variant="outline">

@@ -84,6 +84,14 @@ export const get_employer_stats = async (): Promise<EmployerStats> => {
   const response = await api.get<EmployerStats>(ApiStrings.EMPLOYER_STATS);
   return response.data;
 }
+export const delete_job = async (id:string) => {
+  const response = await api.delete(ApiStrings.DELETE(id));
+  return response.data;
+}
+export const save_bookmark = async (id:string) => {
+  const response = await api.post(ApiStrings.BOOKMARK(id));
+  return response.data;
+}
 
 export const recent_application = async ({
   page = 1,

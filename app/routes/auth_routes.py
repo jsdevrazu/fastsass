@@ -341,9 +341,9 @@ def reset_password(body: ResetPasswordSchema):
 
 
 @router.post('/refresh')
-def refresh_token(req: Request, res: Response,  body: Optional[TokenSchema] = Depends(lambda: None)):
+def refresh_token(req: Request, res: Response,  body: TokenSchema):
     
-    body_token = req.cookies.get("refresh_token") or  (body.refresh_token if body else None)
+    body_token = req.cookies.get("refresh_token") or body.refresh_token
     if not body_token:
         api_error(401, "Refresh token error")
     decode_token = decoded_token(body_token)
@@ -365,6 +365,9 @@ def refresh_token(req: Request, res: Response,  body: Optional[TokenSchema] = De
     )
 
     set_cookie(res, access_token, refresh_token)
+
+    if user['role'] == 'employer':
+            user['company_id'] = str(user['company_id'])
 
     user['_id'] = str(user['_id'])
     

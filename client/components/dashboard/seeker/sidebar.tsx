@@ -136,7 +136,7 @@ const SeekerDashboardSidebar = () => {
           })}
         </nav>
 
-        {user?.role === 'employer' && (
+        {user?.role === 'employer' && user?.feature && (
           <div className="mt-6 px-3">
             <div className="rounded-md border p-3 bg-background">
               <div className="flex items-center justify-between mb-2">

@@ -36,6 +36,7 @@ class EmployerFeature(BaseModel):
     current_plan_name: str
     subscription_id: str
     is_active: bool
+    stripe_customer_ids: List[str]
 
 class User(BaseModel):
     first_name: str
