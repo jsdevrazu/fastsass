@@ -20,8 +20,8 @@ interface JobsEntity {
   _id: string;
   job_id: string;
   title: string;
-  meta_description: string;
   body: string;
+  experience_level: string;
   min_salary: number;
   max_salary: number;
   location: string;
@@ -52,13 +52,11 @@ interface ApplicationResponse {
 }
 interface JobApplicationResponse {
   message: string;
-  page: number;
-  total: number;
-  limit: number;
-  applicants?: (JobApplication)[] | null;
+  applicants?: SingleApplicant;
 }
-
-interface JobApplication{
+ interface SingleApplicant {
+  cover_letter: string;
+  experience: string;
   application_status: string;
   _id: string;
   job_id: string;
@@ -67,8 +65,24 @@ interface JobApplication{
   avatar: string;
   last_name: string;
   email: string;
+  resume: string;
+  location: string;
+  education: Education;
+  user_experience?: (null)[] | null;
+  github_profile: string;
+  linkedin_profile: string;
+  website: string;
+  phone_number: string;
+  skills?: (string)[] | null;
   applied_at: string;
 }
+ interface Education {
+  degree_name: string;
+  start_date: string;
+  end_date: string;
+  institution: string;
+}
+
 
 interface ApplicationsEntity {
   _id: string;
@@ -107,7 +121,7 @@ interface SavedJobsEntity {
 }
 interface SavedJobs {
   title: string;
-  meta_description: string;
+  body: string;
   location: string;
   job_type: string;
   slug: string;
@@ -127,16 +141,24 @@ interface EmployerStats {
 
  interface RecentApplication {
   applicants?: (ApplicantsEntity)[] | null;
+   message: string;
+    page: number;
+    limit: number;
+    total: number;
 }
  interface ApplicantsEntity {
   _id: string;
+  user_id: string;
   job_id: string;
   first_name: string;
   last_name: string;
   created_at: string;
+  avatar: string;
   job_title: string;
+  match_percentage: number;
   application_status: string;
   applicant_email: string;
+  resume: string;
 }
 
 

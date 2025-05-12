@@ -45,9 +45,11 @@ const Header = () => {
                         </DropdownMenuContent>
                     </DropdownMenu>
                     {
-                        user ? <Button onClick={() => router.push(user?.role === 'job_seeker' ? '/seeker/dashboard' : user?.role === 'employer' ? '/employer' : '/admin')}>
-                            Dashboard
-                        </Button> : <>
+                        user ? <Link href={user?.role === 'job_seeker' ? '/seeker/dashboard' : user?.role === 'employer' ? '/employer' : '/admin'}>
+                            <Button>
+                                Dashboard
+                            </Button>
+                        </Link> : <>
                             <Link href="/register">
                                 <Button variant="outline" size="sm">
                                     Register

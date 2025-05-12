@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -36,7 +37,9 @@ const FeaturedJobs = ({ jobs }: { jobs: JobsEntity[] }) => {
                                             <MapPin className="h-4 w-4" />
                                             <span>{job.location}</span>
                                         </div>
-                                        <p className="text-sm text-left text-muted-foreground mb-4 line-clamp-2">{job.meta_description}</p>
+                                        <div className="text-left mb-2" dangerouslySetInnerHTML={{
+                                            __html: job?.body?.slice(0, 200)
+                                        }} />
                                         <div className="flex flex-wrap gap-2">
                                             {job?.skills?.map((skill) => (
                                                 <Badge key={skill} variant="secondary">

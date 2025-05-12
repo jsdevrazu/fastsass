@@ -14,7 +14,7 @@ export function GlobalLoader() {
     if (!loading) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+        <div className="fixed z-[10000] inset-0 flex items-center justify-center bg-background">
             <div className="flex flex-col items-center gap-2">
                 <Logo />
             </div>

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from pymongo.errors import PyMongoError
 from app.utils.error_handler import api_error
 from app.validation_schema.post_validation_schema import JobSchema
 from bson import ObjectId
 from app.dependencies.subscription import require_active_subscription
 from app.auth.jwt_handler import require_role, get_current_user, optional_get_current_user
-from app.utils.helper import slugify
+from app.utils.helper import slugify, calculate_match_percentage
 from datetime import datetime, timedelta, timezone
 from app.db.mongo import db
 from app.validation_schema.post_validation_schema import UpdateJobSchema, ApplicationStatus, ApplicationSchema, ReviewsRatinsSchema
@@ -97,15 +97,14 @@ def get_all_jobs(
                 "$project": {
                     "_id": {"$toString": "$_id"}, 
                     "title": 1,
-                    "meta_description": 1,
                     "min_salary": 1,
                     "max_salary": 1,
-                    "location": 1,
                     "job_type": 1,
                     "slug": 1,
                     "created_at": 1,
                     "updated_at": 1,
                     "location": 1,
+                    "body": 1,
                     "job_type": 1,
                     "skills": 1,
                     "questions": 1,
@@ -132,6 +131,26 @@ def get_all_jobs(
 
     except PyMongoError as error:
         api_error(500, str(error))
+
+
+@router.get('/{slug}/edit/detail')
+def get_edit_job_detail(
+    slug: str,
+    user = Depends(require_role('employer'))
+):
+    job = db.jobs.find_one({"slug": slug, "post_by": ObjectId(user["_id"])})
+
+    if not job:
+        api_error(404, 'Job Not Found')
+    
+    job['_id'] = str(job['_id'])
+    job['post_by'] = str(job['post_by'])
+    job['company_name'] = str(job['company_name'])
+
+    return {
+        "message": "success",
+        "job": job
+    } 
 
 
 @router.get('/{slug}/detail')
@@ -195,7 +214,6 @@ def get_single_job(
                 "_id": {"$toString": "$_id"},
                 "title": 1,
                 "body": 1,
-                "meta_description": 1,
                 "min_salary": 1,
                 "max_salary": 1,
                 "location": 1,
@@ -204,6 +222,7 @@ def get_single_job(
                 "created_at": 1,
                 "updated_at": 1,
                 "skills": 1,
+                "experience_level": 1,
                 "questions": 1,
                 "apply_settings": 1,
                 "application_email": 1,
@@ -227,9 +246,7 @@ def get_single_job(
     return {
         "message": "success",
         "job": job_list[0]
-    }
-    
-    
+    } 
 
 @router.patch("/update/{job_id}")
 def update_job(
@@ -616,10 +633,10 @@ def get_saved_jobs(
                    "user_id": {"$toString": "$user_id"}, 
                    "saved_jobs._id": {"$toString": "$saved_jobs._id"}, 
                     "saved_jobs.title": 1,
-                    "saved_jobs.meta_description": 1,
                     "saved_jobs.location": 1,
                     "saved_jobs.job_type": 1,
                     "company_name": "$company.name",
+                    "saved_jobs.body": 1,
                     "saved_jobs.slug": 1,
                     "saved_jobs.created_at": 1,
                     "saved_jobs.updated_at": 1,
@@ -790,9 +807,9 @@ def featured_jobs():
                 "_id":{"$toString": "$_id"},
                 "company.name": 1,
                 "job_type": 1,
+                "body": 1,
                 "location": 1,
                 "title": 1,
-                "meta_description": 1,
                 "skills": 1,
                 "slug": 1
             }
@@ -906,55 +923,82 @@ def get_recent_applicants(
     job_id: Optional[str] = None,
 ):
     company_id = ObjectId(user["company_id"])
-    ten_days_ago = datetime.now(timezone.utc) - timedelta(days=days)
+    since_date = datetime.now(timezone.utc) - timedelta(days=days)
+    skip = (page - 1) * limit
 
     job_query = {"company_name": company_id, "status": "active"}
     if job_id:
         job_query["_id"] = ObjectId(job_id)
 
-    jobs = list(db.jobs.find(job_query, {"_id": 1, "title": 1}))
-    job_id_to_title = {job["_id"]: job["title"] for job in jobs}
-    job_ids = list(job_id_to_title.keys())
+    jobs = list(db.jobs.find(job_query))
+    job_id_map = {job["_id"]: job for job in jobs}
+    job_ids = list(job_id_map.keys())
 
     if not job_ids:
-        return {"applicants": [], "total": 0}
+        return {"message": "No jobs found", "applicants": [], "total": 0}
 
-    skip = (page - 1) * limit
-    applications_cursor = db.applications.find(
-        {"job_id": {"$in": job_ids}, "created_at": {"$gte": ten_days_ago}}
-    ).sort("created_at", -1).skip(skip).limit(limit)
+    pipeline = [
+        {
+            "$match": {
+                "job_id": {"$in": job_ids},
+                "created_at": {"$gte": since_date}
+            }
+        },
+        {"$sort": {"created_at": -1}},
+        {"$skip": skip},
+        {"$limit": limit},
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "applicate",
+                "foreignField": "_id",
+                "as": "user"
+            }
+        },
+        {"$unwind": {"path": "$user", "preserveNullAndEmptyArrays": True}},
+        {
+            "$project": {
+                "_id": {"$toString": "$_id"},
+                "job_id": 1,
+                "application_status": 1,
+                "created_at": 1,
+                "user": 1
+            }
+        }
+    ]
 
-    applications = list(applications_cursor)
-
-    total_applications = db.applications.count_documents({
+    apps = list(db.applications.aggregate(pipeline))
+    total = db.applications.count_documents({
         "job_id": {"$in": job_ids},
-        "created_at": {"$gte": ten_days_ago}
+        "created_at": {"$gte": since_date}
     })
 
-    applicant_ids = list({app["applicate"] for app in applications})
-    users = db.users.find({"_id": {"$in": applicant_ids}})
-    user_map = {u["_id"]: u for u in users}
-
-    enriched_apps = []
-    for app in applications:
-        applicant_info = user_map.get(app["applicate"], {})
-        enriched_apps.append({
-            "_id": str(app["_id"]),
+    enriched = []
+    for app in apps:
+        job = job_id_map.get(app["job_id"])
+        user_info = app.get("user", {})
+        enriched.append({
+            "_id": app["_id"],
             "job_id": str(app["job_id"]),
-            "first_name": app.get("first_name"),
-            "last_name": app.get("last_name"),
+            "job_title": job.get("title", "Unknown Job") if job else "Unknown",
             "created_at": app["created_at"].isoformat(),
-            "job_title": job_id_to_title.get(app["job_id"], "Unknown Job"),
             "application_status": app.get("application_status"),
-            "applicant_email": applicant_info.get("email"),
+            "first_name": user_info.get("first_name", ""),
+            "user_id": str(user_info.get("_id", "")),
+            "last_name": user_info.get("last_name", ""),
+            "applicant_email": user_info.get("email", ""),
+            "resume": user_info.get("resume", ""),
+            "match_percentage": calculate_match_percentage(job or {}, user_info)
         })
 
     return {
-        "total": total_applications,
+        "message": "success",
         "page": page,
         "limit": limit,
-        "applicants": enriched_apps
+        "total": total,
+        "applicants": enriched
     }
+
 
 
 
@@ -1267,40 +1311,23 @@ def get_candidates(
         }
 
 
-@router.get("/job-apps/{job_id}")
+@router.get("/job-apps/{user_id}")
 def get_spefic_job_applications(
-    job_id:str, 
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, ge=1),
+    user_id:str, 
     user=Depends(require_role('employer'))
 ):
-    job = db.jobs.find_one({"_id": ObjectId(job_id), "post_by": ObjectId(user["_id"])})
-    if not job:
-        return {
-          "message": "succcess",
-          "applicants": [],
-          "total": 0,
-          "page": page,
-          "limit": limit
-    }
-        
-    skip = (page-1) * limit
     pipeline = [
-        {"$match": {
-            "job_id": ObjectId(job_id)
-        }},
-        {"$skip": skip},
-        {"$limit": limit},
+        {"$match": { "applicate": ObjectId(user_id)}},
         {
-                "$lookup": {
+           "$lookup": {
                     "from": "users",
                     "localField": "applicate",
                     "foreignField": "_id",
                     "as": "applicant"
                 }
-            },
-            {"$unwind": "$applicant"},
-            {
+        },
+        {"$unwind": "$applicant"},
+        {
                 "$lookup": {
                     "from": "jobs",
                     "localField": "job_id",
@@ -1308,8 +1335,8 @@ def get_spefic_job_applications(
                     "as": "job"
                 }
             },
-            {"$unwind": "$job"},
-            {
+        {"$unwind": "$job"},
+        {
                 "$project": {
                     "_id": {"$toString": "$_id"},
                     "job_id": {"$toString": "$job._id"},
@@ -1318,20 +1345,27 @@ def get_spefic_job_applications(
                     "avatar": "$applicant.avatar",
                     "last_name": "$applicant.last_name",
                     "email": "$applicant.email",
+                    "resume": "$applicant.resume",
+                    "location": "$applicant.location",
+                    "education": "$applicant.education",
+                    "user_experience": "$applicant.experience",
+                    "github_profile": "$applicant.github_profile",
+                    "linkedin_profile": "$applicant.linkedin_profile",
+                    "website": "$applicant.website",
+                    "phone_number": "$applicant.phone_number",
+                    "skills": "$applicant.skills",
                     "application_status": 1,
+                    "cover_letter": 1,
+                    "experience": 1,
+                    "skills": "$job.skills",
                     "applied_at": "$created_at"
                 }
             }
     ]
 
     applicants = list(db.applications.aggregate(pipeline))
-    total = db.applications.count_documents({"job_id": ObjectId(job_id)})
-
      
     return {
           "message": "succcess",
-          "applicants": applicants,
-          "total": total,
-          "page": page,
-          "limit": limit
+          "applicants": applicants[0]
     }

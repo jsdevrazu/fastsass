@@ -2,14 +2,14 @@ import { z } from 'zod'
 
 export const jobSchema = z.object({
   title: z.string().min(1, "Job title is required"),
-  meta_description: z.string().min(1, "Meta description is required"),
+  experience_level: z.string().min(1, "Experience level is required"),
   body: z.string().min(250, "Job body must be 250 character required"),
   min_salary: z.string().min(1, "Minimum salary must be non-negative"),
   max_salary: z.string().min(1, "Maximum salary must be non-negative"),
   location: z.string().min(1, "Location is required"),
   job_type: z.string().min(1, "Job type is required"),
   skills: z.string().min(1, "At least one skill is required"),
-  questions: z.array(z.string()).optional(),
+  questions: z.any().optional(),
   apply_settings: z.string().min(1, "This field is required"),
   application_email: z.string().optional(),
   application_link: z.string().optional(),
@@ -52,15 +52,15 @@ export const generateApplicationSchema = (questions: string[] = []) => {
 
 export type JobFormData = {
   title: string;
-  meta_description: string;
   body: string;
   min_salary: number;
   max_salary: number;
   location: string;
+  experience_level: string;
   job_type: string;
   skills: string;
   apply_settings: string;
-  questions?: { value: string }[];
+  questions?: any[];
   application_email?: string;
   application_link?: string;
 };

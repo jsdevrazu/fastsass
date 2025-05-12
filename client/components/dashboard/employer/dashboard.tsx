@@ -29,6 +29,8 @@ import { DataTable } from "@/components/data-table"
 import { EmptyState } from "@/components/ui/empty-state"
 import { format } from "date-fns";
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { baseURLPhoto } from "@/lib/axios"
 
 
 export default function EmployerDashboard() {
@@ -64,6 +66,17 @@ export default function EmployerDashboard() {
         UseQueryResult<ActiveJobs>
     ];
 
+    const handleDownload = (name: string, url: string) => {
+        const resumeUrl = baseURLPhoto(url);
+        const link = document.createElement("a");
+        link.href = resumeUrl;
+        link.setAttribute("download", `${name}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
+
     const columns: ColumnDef<ApplicantsEntity>[] = [
         {
             accessorKey: "name",
@@ -98,11 +111,8 @@ export default function EmployerDashboard() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Download Resume</DropdownMenuItem>
-                        <DropdownMenuItem>Change Status</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">Reject</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/employer/apps/${row.original.job_id}`)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownload(`${row.original.first_name?.toLowerCase()}_${row.original.last_name?.toLowerCase()}`, row.original.resume)}>Download Resume</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -205,12 +215,16 @@ export default function EmployerDashboard() {
                                                 <span>Expires in {format(job?.application_dead_line, "MM/dd/yyyy")}</span>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button onClick={() => router.push(`/jobs/${job?.slug}`)} size="sm" variant="outline">
-                                                    View
-                                                </Button>
-                                                <Button size="sm" variant="outline">
-                                                    Edit
-                                                </Button>
+                                                <Link href={`/jobs/${job?.slug}`}>
+                                                    <Button size="sm" variant="outline">
+                                                        View
+                                                    </Button>
+                                                </Link>
+                                                <Link href={`/employer/edit-job/${job?.slug}`}>
+                                                    <Button size="sm" variant="outline">
+                                                        Edit
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
                                     )) : <EmptyState

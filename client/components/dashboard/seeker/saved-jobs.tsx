@@ -52,7 +52,9 @@ const SavedJobs = () => {
                                     <MapPin className="h-4 w-4" />
                                     <span>{job.saved_jobs.location}</span>
                                 </div>
-                                <p className="text-sm text-muted-foreground line-clamp-2">{job.saved_jobs.meta_description}</p>
+                                <div dangerouslySetInnerHTML={{
+                                    __html: job?.saved_jobs?.body?.slice(0, 150)
+                                }} />
                                 <div className="flex gap-2">
                                     <Button size="sm" variant="outline" asChild>
                                         <Link href={`/jobs/${job?.saved_jobs?.slug}`}>View</Link>

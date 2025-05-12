@@ -1,7 +1,6 @@
 interface Payload {
   skills: string[];
   title: string;
-  meta_description: string;
   body: string;
   min_salary: number;
   max_salary: number;

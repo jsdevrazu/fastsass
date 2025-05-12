@@ -14,7 +14,7 @@ const api = axios.create({
 });
 
 export const baseURLPhoto = (url: string): string => {
-  return url ? `${process.env.NEXT_PUBLIC_APP_URL}/${url}` : `/placeholder.svg`;
+  return url ? `${process.env.NEXT_PUBLIC_API_URL}/${url}` : `/placeholder.svg`;
 };
 
 

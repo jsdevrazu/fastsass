@@ -169,7 +169,9 @@ const JobsView = () => {
                                         <Badge variant={job.job_type === "Full-time" ? "default" : "outline"}>{job.job_type}</Badge>
                                         <span className="text-sm">${job.min_salary} - ${job.max_salary}</span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground line-clamp-2">{job.meta_description}</p>
+                                    <div className="text-sm text-muted-foreground line-clamp-2" dangerouslySetInnerHTML={{
+                                        __html: job?.body?.slice(0, 150)
+                                    }} />
                                     <div className="flex flex-wrap gap-2">
                                         {job?.skills?.map((skill) => (
                                             <Badge key={skill} variant="secondary">

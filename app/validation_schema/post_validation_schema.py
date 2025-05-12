@@ -4,8 +4,8 @@ from app.models.user_model import NotificationFeature, PrivacyFeature, Preferenc
 
 class JobSchema(BaseModel):
     title: str
-    meta_description: str
     body: str
+    experience_level: str
     min_salary: int
     max_salary: int
     location: str
@@ -19,8 +19,8 @@ class JobSchema(BaseModel):
 
 class UpdateJobSchema(BaseModel):
     title: Optional[str] = None
-    meta_description: Optional[str] = None
     body: Optional[str] = None
+    experience_level: Optional[str] = None
     min_salary: Optional[int] = None
     max_salary: Optional[int] = None
     location: Optional[str] = None

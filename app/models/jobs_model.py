@@ -7,10 +7,10 @@ from bson import ObjectId
 class JobModel(BaseModel):
 
     title: str
-    meta_description: str
     body: str
     min_salary: int
     max_salary: int
+    experience_level: str
     created_at: Optional[datetime] = datetime.now()
     updated_at: Optional[datetime] = datetime.now()
     application_dead_line: Optional[datetime] = None

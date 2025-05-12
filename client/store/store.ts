@@ -36,8 +36,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const data = await get_me()
         set({ user: data.user })
       } catch (err) {
-        set({ user: null }) 
-      } finally{
+        set({ user: null })
+      } finally {
         set({ loading: false })
       }
     } else {

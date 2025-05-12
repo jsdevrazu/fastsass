@@ -40,6 +40,13 @@ body {
 .dark .ql-container.ql-snow{
   border: 1px solid #222f44 !important;
 }
+.error .ql-toolbar.ql-snow{
+  border: 1px solid #fb2c36 !important;
+}
+
+.error .ql-container.ql-snow{
+  border: 1px solid #fb2c36 !important;
+}
 
 .dark .job_description span{
   background-color: transparent !important;

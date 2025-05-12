@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: job?.title || "Job Details",
-    description: job?.meta_description?.slice(0, 150) || "Details of the job",
+    description: job?.body?.slice(0, 150) || "Details of the job",
   };
 }
 

@@ -38,3 +38,12 @@ def slugify(title: str) -> str:
     text = text.strip('-')
     return  text
     
+
+def calculate_match_percentage(job: dict, user: dict) -> int:
+    job_skills = set(job.get("skills", []))
+    user_skills = set(skill["name"].lower() for skill in user.get("skills", []))
+
+    if not job_skills:
+        return 0
+    matched = job_skills & user_skills
+    return int((len(matched) / len(job_skills)) * 100)
