@@ -2,7 +2,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "@/constants";
 import { useAuthStore } from "@/store/store";
-import { jwtDecode } from "jwt-decode";
 import ApiStrings from "@/lib/api_strings";
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -15,7 +14,7 @@ const api = axios.create({
 });
 
 export const baseURLPhoto = (url: string): string => {
-  return `http://127.0.0.1:8000/${url}`;
+  return url ? `${process.env.NEXT_PUBLIC_APP_URL}/${url}` : `/placeholder.svg`;
 };
 
 
@@ -31,7 +30,6 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log("error.response?.data", error.response?.data)
     const originalRequest = error.config;
     if (error.response?.data?.error === "Invalid or missing token" || error.response?.data?.error === 'Invalid Token' ||  error.response?.data?.error === 'Token is invalid or expired') {
       try {

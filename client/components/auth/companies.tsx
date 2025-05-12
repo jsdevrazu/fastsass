@@ -9,15 +9,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MapPin, Search, Building, Users, Star, ExternalLink, ChevronDown } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
-import Header from "@/components/layouts/header"
-import Footer from "@/components/layouts/footer"
 import locations from '@/dump/locations.json'
 import industries from '@/dump/industry.json'
 import { useQuery } from "@tanstack/react-query"
 import { get_companies } from "@/lib/apis/jobs"
-import CompaniesLoading from "@/app/companies/loading"
+import CompaniesLoading from "@/app/(auth)/companies/loading"
 import { baseURLPhoto } from "@/lib/axios"
 import { useDebounce } from "@/hooks/use-debounce"
+import { getWithFallback } from "@/lib/utils/ui-data-formater"
 
 
 export default function CompaniesPage() {
@@ -47,7 +46,6 @@ export default function CompaniesPage() {
 
     return (
         <>
-            <Header />
             <div className="container mx-auto py-8 px-4 max-w-7xl">
                 <div className="space-y-6">
                     <div className="space-y-2">
@@ -145,7 +143,6 @@ export default function CompaniesPage() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </>
     )
 }
@@ -159,7 +156,7 @@ function CompanyCard({ company }: { company: CompaniesEntity }) {
                         <div className="flex-shrink-0">
                             <div className="w-16 h-16 rounded-md border bg-muted flex items-center justify-center overflow-hidden">
                                 <img
-                                    src={baseURLPhoto(company?.logo) || "/placeholder.svg"}
+                                    src={baseURLPhoto(company?.logo)}
                                     alt={`${company?.name} logo`}
                                     className="w-full h-full object-contain p-2"
                                 />
@@ -170,26 +167,26 @@ function CompanyCard({ company }: { company: CompaniesEntity }) {
                             <h3 className="font-semibold text-lg line-clamp-1">{company?.name}</h3>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                <span>{company?.rating}</span>
+                                <span>{getWithFallback(company?.rating, 'rating')}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-4 space-y-2">
-                        <p className="text-sm text-muted-foreground line-clamp-2">{company?.company_description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{getWithFallback(company?.company_description, 'company description')}</p>
 
                         <div className="flex flex-wrap gap-2 mt-3">
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <Building className="h-3 w-3" />
-                                {company?.industry}
+                                {getWithFallback(company?.industry, 'industry')}
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                {company?.headquatar_location?.split(",")[0]}
+                                {getWithFallback(company?.headquatar_location?.split(",")[0], 'headquatar location')}
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                {company?.company_size}
+                                {getWithFallback(company?.company_size, 'company size')}
                             </Badge>
                         </div>
                     </div>

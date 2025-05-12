@@ -64,6 +64,14 @@ export const get_single_job = async (id: string) => {
   const response = await api.get<SingleJobsResponse>(ApiStrings.SINGLE_JOB(id));
   return response.data;
 }
+export const get_job_applications = async ({
+  page = 1,
+  limit = 10,
+  id = ''
+}): Promise<JobApplicationResponse> => {
+  const response = await api.get<JobApplicationResponse>(ApiStrings.GET_JOB_APPLICATION(id), { params: { page, limit}});
+  return response.data;
+}
 
 export const apply_job = async (payload: ApplyFormPayload) => {
   const response = await api.post(ApiStrings.APPLY_JOB(payload.id), payload.data);

@@ -32,6 +32,7 @@ const ApiStrings = {
     REVIEW: (id:string) => `/job/review/${id}`,
     DELETE: (id:string) => `/job/delete/${id}`,
     BOOKMARK: (id:string) => `/job/save/${id}`,
+    GET_JOB_APPLICATION: (id:string) => `/job/job-apps/${id}`,
     // Payment
     CREATE_PAYMENT_URL: '/pay/subcribe',
     BILLING_PORTAL: '/pay/billing-portal',

@@ -14,7 +14,6 @@ import {
     Star,
     Clock,
     ChevronLeft,
-    Share2,
     Facebook,
     Twitter,
     Linkedin,
@@ -28,6 +27,8 @@ import EmployeeReviews from "@/components/auth/employee-reviews"
 import moment from "moment"
 import Image from "next/image"
 import { ShareJobButton } from "@/components/share-job-button"
+import { getWithFallback } from "@/lib/utils/ui-data-formater"
+import { EmptyState } from "@/components/ui/empty-state"
 
 
 export default async function CompanyDetailsPage({ params }: { params: { id: string } }) {
@@ -51,7 +52,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
             <div className="relative mb-8">
                 <div className="w-full h-48 md:h-64 rounded-lg overflow-hidden bg-muted">
                     <Image
-                        src={baseURLPhoto(company?.logo) || "/placeholder.svg"}
+                        src={baseURLPhoto(company?.logo)}
                         alt={`${company?.name} cover`}
                         className="w-full h-full object-cover"
                         width={1000}
@@ -63,7 +64,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                     <div className="flex flex-col md:flex-row md:items-end gap-4">
                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg border-4 border-background bg-background shadow-md overflow-hidden">
                             <Image
-                                src={baseURLPhoto(company?.logo) || "/placeholder.svg"}
+                                src={baseURLPhoto(company?.logo)}
                                 alt={`${company?.name} logo`}
                                 className="w-full h-full object-contain p-2"
                                 width={96}
@@ -74,16 +75,16 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                             <h1 className="text-2xl md:text-3xl font-bold">{company?.name}</h1>
                             <div className="flex items-center gap-2 text-muted-foreground mt-1">
                                 <Building className="h-4 w-4" />
-                                <span>{company?.industry}</span>
+                                <span>{getWithFallback(company?.industry, 'industry')}</span>
                                 <span className="text-xs">•</span>
                                 <MapPin className="h-4 w-4" />
-                                <span>{company?.headquatar_location}</span>
+                                <span>{getWithFallback(company?.headquatar_location, 'headquatar location')}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex gap-2 mt-4 md:mt-0">
-                        <ShareJobButton jobId={id} jobTitle={'Company Profile'} companyName={company?.name} className="w-full" />
+                        <ShareJobButton jobId={id} jobTitle={'Company Profile'} companyName={getWithFallback(company?.name, 'company name')} className="w-full" />
                     </div>
                 </div>
             </div>
@@ -103,7 +104,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                     <CardTitle>About {company?.name}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <p className="whitespace-pre-line">{company?.company_description}</p>
+                                    <p className="whitespace-pre-line">{getWithFallback(company?.company_description, 'company description')}</p>
                                 </CardContent>
                             </Card>
 
@@ -114,12 +115,12 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                 <CardContent>
                                     <ul className="space-y-2">
                                         {
-                                            company?.comapnies_calture && Object.entries(company?.comapnies_calture)?.map(([value], index) => (
+                                            company?.comapnies_calture ? Object.entries(company?.comapnies_calture)?.map(([value], index) => (
                                                 <li key={index} className="flex items-start gap-2 capitalize">
                                                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                                     <span>{value}</span>
                                                 </li>
-                                            ))
+                                            )) : `No company culture found`
                                         }
                                     </ul>
                                 </CardContent>
@@ -131,7 +132,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
-                                        {company?.active_jobs?.slice(0, 3)?.map((job) => (
+                                        {company?.active_jobs?.length > 0 ? company?.active_jobs?.slice(0, 3)?.map((job) => (
                                             <div
                                                 key={job?.job_id}
                                                 className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg border"
@@ -157,7 +158,11 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                                     <Link href={`/jobs/${job?.slug}`}>View Job</Link>
                                                 </Button>
                                             </div>
-                                        ))}
+                                        )) : <EmptyState
+                                            icon={Briefcase}
+                                            title="No jobs available"
+                                            description="There are currently no job listings available. Please check back later."
+                                        />}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -179,7 +184,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                                 rel="noopener noreferrer"
                                                 className="text-primary hover:underline"
                                             >
-                                                {company?.website}
+                                                {getWithFallback(company?.website, 'website')}
                                             </a>
                                         </div>
                                     </div>
@@ -188,7 +193,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                         <MapPin className="h-5 w-5 text-muted-foreground" />
                                         <div>
                                             <div className="text-sm text-muted-foreground">Headquarters</div>
-                                            <div>{company?.headquatar_location}</div>
+                                            <div>{getWithFallback(company?.headquatar_location, 'headquatar location')}</div>
                                         </div>
                                     </div>
 
@@ -196,7 +201,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                         <Calendar className="h-5 w-5 text-muted-foreground" />
                                         <div>
                                             <div className="text-sm text-muted-foreground">Founded</div>
-                                            <div>{company.founded}</div>
+                                            <div>{getWithFallback(company.founded, 'founded')}</div>
                                         </div>
                                     </div>
 
@@ -204,7 +209,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                         <Users className="h-5 w-5 text-muted-foreground" />
                                         <div>
                                             <div className="text-sm text-muted-foreground">Company Size</div>
-                                            <div>{company.company_size} employees</div>
+                                            <div>{getWithFallback(company.company_size, 'employees size')} {company.company_size && 'employees'}</div>
                                         </div>
                                     </div>
 
@@ -256,13 +261,13 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                             <div className="flex items-center gap-2">
                                                 <Mail className="h-4 w-4 text-muted-foreground" />
                                                 <a href={`mailto:${company?.contact?.email}`} className="text-primary hover:underline">
-                                                    {company?.contact?.email}
+                                                    {getWithFallback(company?.contact?.email, 'company email')}
                                                 </a>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Phone className="h-4 w-4 text-muted-foreground" />
                                                 <a href={`tel:${company?.contact?.phone}`} className="text-primary hover:underline">
-                                                    {company?.contact?.phone}
+                                                    {getWithFallback(company?.contact?.phone, 'company phone')}
                                                 </a>
                                             </div>
                                         </div>
@@ -290,7 +295,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                                 />
                                             ))}
                                         </div>
-                                        <div className="text-sm text-muted-foreground">({company?.ratings?.length} reviews)</div>
+                                        <div className="text-sm text-muted-foreground">({getWithFallback(company?.ratings?.length, 'rating')} {company?.ratings?.length && 'reviews'})</div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -305,7 +310,7 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-6">
-                                {company?.active_jobs?.map((job) => (
+                                {company?.active_jobs?.length > 0 ? company?.active_jobs?.map((job) => (
                                     <div
                                         key={job.job_id}
                                         className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg border"
@@ -333,7 +338,11 @@ export default async function CompanyDetailsPage({ params }: { params: { id: str
                                             <Link href={`/jobs/${job?.slug}`}>View Job</Link>
                                         </Button>
                                     </div>
-                                ))}
+                                )) : <EmptyState
+                                    icon={Briefcase}
+                                    title="No jobs available"
+                                    description="There are currently no job listings available. Please check back later."
+                                />}
                             </div>
                         </CardContent>
                     </Card>

@@ -50,6 +50,26 @@ interface ApplicationResponse {
   limit: number;
   applications?: (ApplicationsEntity)[] | null;
 }
+interface JobApplicationResponse {
+  message: string;
+  page: number;
+  total: number;
+  limit: number;
+  applicants?: (JobApplication)[] | null;
+}
+
+interface JobApplication{
+  application_status: string;
+  _id: string;
+  job_id: string;
+  job_title: string;
+  first_name: string;
+  avatar: string;
+  last_name: string;
+  email: string;
+  applied_at: string;
+}
+
 interface ApplicationsEntity {
   _id: string;
   company_name: string

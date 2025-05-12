@@ -1265,3 +1265,73 @@ def get_candidates(
             "total": len(applicants),
             "applicants": applicants
         }
+
+
+@router.get("/job-apps/{job_id}")
+def get_spefic_job_applications(
+    job_id:str, 
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    user=Depends(require_role('employer'))
+):
+    job = db.jobs.find_one({"_id": ObjectId(job_id), "post_by": ObjectId(user["_id"])})
+    if not job:
+        return {
+          "message": "succcess",
+          "applicants": [],
+          "total": 0,
+          "page": page,
+          "limit": limit
+    }
+        
+    skip = (page-1) * limit
+    pipeline = [
+        {"$match": {
+            "job_id": ObjectId(job_id)
+        }},
+        {"$skip": skip},
+        {"$limit": limit},
+        {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "applicate",
+                    "foreignField": "_id",
+                    "as": "applicant"
+                }
+            },
+            {"$unwind": "$applicant"},
+            {
+                "$lookup": {
+                    "from": "jobs",
+                    "localField": "job_id",
+                    "foreignField": "_id",
+                    "as": "job"
+                }
+            },
+            {"$unwind": "$job"},
+            {
+                "$project": {
+                    "_id": {"$toString": "$_id"},
+                    "job_id": {"$toString": "$job._id"},
+                    "job_title": "$job.title",
+                    "first_name": "$applicant.first_name",
+                    "avatar": "$applicant.avatar",
+                    "last_name": "$applicant.last_name",
+                    "email": "$applicant.email",
+                    "application_status": 1,
+                    "applied_at": "$created_at"
+                }
+            }
+    ]
+
+    applicants = list(db.applications.aggregate(pipeline))
+    total = db.applications.count_documents({"job_id": ObjectId(job_id)})
+
+     
+    return {
+          "message": "succcess",
+          "applicants": applicants,
+          "total": total,
+          "page": page,
+          "limit": limit
+    }

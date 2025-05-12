@@ -10,6 +10,7 @@ import { WriteReviewModal } from "@/components/modals/write-review-modal"
 import { useState } from "react"
 import { useAuthStore } from "@/store/store"
 import { toast } from "sonner"
+import { EmptyState } from "@/components/ui/empty-state"
 
 const EmployeeReviews = ({ company }: { company: Company }) => {
 
@@ -30,7 +31,7 @@ const EmployeeReviews = ({ company }: { company: Company }) => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6">
-                            {reviews?.map((review, index) => (
+                            {reviews?.length > 0 ? reviews?.map((review, index) => (
                                 <div key={index} className="border rounded-lg p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -103,7 +104,11 @@ const EmployeeReviews = ({ company }: { company: Company }) => {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            )) : <EmptyState
+                                icon={Star}
+                                title="No reviews available"
+                                description="There are currently no reviews listings available. Please check back later."
+                            />}
                         </div>
                     </CardContent>
                 </Card>
