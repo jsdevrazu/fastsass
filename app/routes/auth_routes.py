@@ -116,8 +116,8 @@ async def github_callback(request: Request):
             })
            company_id = company.inserted_id
 
+    token_data = fetch_token(username, email or f"{username}@github.com")
     if not existing_user:
-        token_data = fetch_token(username, email or f"{username}@github.com")
         new_user = {
             "first_name": username,
             "email": f"{username}@github.com",
