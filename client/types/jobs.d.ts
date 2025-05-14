@@ -246,3 +246,18 @@ interface EmployerStats {
   applied_at: string;
   skills: string[]
 }
+
+ interface UsersResponse {
+  users?: (UsersEntity)[] | null;
+  total: number
+}
+ interface UsersEntity {
+  id: string;
+  avatar: string;
+  full_name: string;
+  email: string;
+  role: string;
+  status: string;
+  created_at: string;
+  invite_message: string;
+}

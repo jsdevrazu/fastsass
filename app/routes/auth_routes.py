@@ -422,6 +422,7 @@ def get_current_user_profile(user=Depends(get_current_user)):
                     "education": 1,
                     "github_profile": 1,
                     "notification_feature": 1,
+                    "employer_notification": 1,
                     "prefer_settings": 1,
                     "privacy_feature": 1,
                     "linkedin_profile": 1,

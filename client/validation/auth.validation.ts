@@ -118,6 +118,16 @@ export const emailNotificationSchema = z.object({
   recomandation_frequency: z.string().default('daily'),
 });
 
+export const emailNotificationEmployerSchema = z.object({
+  new_application_email: z.boolean().default(false),
+  application_status_update: z.boolean().default(false),
+  job_post_expiration: z.boolean().default(false),
+  candidate_recomandation: z.boolean().default(false),
+  marketing_communication: z.boolean().default(false),
+  application_digest: z.string().default('realtime'),
+  analytics_reports: z.string().default('daily'),
+});
+
 export const privacySchema = z.object({
   profile_visibility: z.boolean().default(false),
   contact_information: z.boolean().default(false),
@@ -133,6 +143,7 @@ export const preferSchema = z.object({
   preferred_industry: z.string().default('Information Technology (IT)'),
 });
 
+export type EmailNotificationSchema = z.infer<typeof emailNotificationEmployerSchema>;
 export type SetPasswordFormValues = z.infer<typeof setPasswordSchema>;
 export type PreferFormValues = z.infer<typeof preferSchema>;
 export type PrivacyFormValues = z.infer<typeof privacySchema>;

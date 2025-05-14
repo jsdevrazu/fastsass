@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.utils.error_handler import api_error
-from app.auth.jwt_handler import require_role
+from app.auth.jwt_handler import require_role, get_current_user
 from app.db.mongo import db
 from bson.objectid import ObjectId
 from app.validation_schema.post_validation_schema import UpdateUserPreferences
@@ -12,19 +12,25 @@ router = APIRouter()
 @router.put("/update")
 def update_notification(
     body: UpdateUserPreferences,
-    user=Depends(require_role('job_seeker'))
+    user=Depends(get_current_user)
 ):
 
     update_fields = {}
 
-    if body.notification_feature is not None:
-        update_fields["notification_feature"] = body.notification_feature.model_dump()
+    if user.get('role') == 'job_seeker':
 
-    if body.privacy_feature is not None:
-        update_fields["privacy_feature"] = body.privacy_feature.model_dump()
+        if body.notification_feature is not None:
+            update_fields["notification_feature"] = body.notification_feature.model_dump()
 
-    if body.prefer_settings is not None:
-        update_fields["prefer_settings"] = body.prefer_settings.model_dump()
+        if body.privacy_feature is not None:
+            update_fields["privacy_feature"] = body.privacy_feature.model_dump()
+
+        if body.prefer_settings is not None:
+            update_fields["prefer_settings"] = body.prefer_settings.model_dump()
+
+    if user.get('role') == 'employer':
+        if body.employer_notification is not None:
+            update_fields["employer_notification"] = body.employer_notification.model_dump()
 
     if not update_fields:
         api_error(400, "No fields to update.")

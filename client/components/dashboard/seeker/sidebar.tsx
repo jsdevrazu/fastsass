@@ -101,10 +101,10 @@ const SeekerDashboardSidebar = () => {
 
 
   const handleLogout = async () => {
-    toast.success("Logout Successfully")
     logout()
-    await logout_api()
     router.push("/login")
+    toast.success("Logout Successfully")
+    await logout_api()
   }
 
   return (

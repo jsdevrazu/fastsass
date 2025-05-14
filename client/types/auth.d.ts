@@ -34,6 +34,15 @@ interface User {
   education: Education
   comapny: Company
   notification_feature: Notification,
+  employer_notification: {
+    new_application_email: boolean;
+    application_status_update: boolean;
+    job_post_expiration: boolean;
+    candidate_recomandation: boolean;
+    marketing_communication: boolean;
+    application_digest: string;
+    analytics_reports: string;
+}
   privacy_feature: {
     profile_visibility: boolean;
     contact_information: boolean;

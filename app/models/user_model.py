@@ -47,6 +47,15 @@ class NotificationFeature(BaseModel):
     job_alert_frequency: Optional[str] = ''
     recomandation_frequency: Optional[str] = ''
 
+class NotificationFeatureEmployer(BaseModel):
+    new_application_email: Optional[bool] = False
+    application_status_update: Optional[bool] = False
+    job_post_expiration: Optional[bool] = False
+    candidate_recomandation: Optional[bool] = False
+    marketing_communication: Optional[bool] = False
+    application_digest: Optional[str] = ''
+    analytics_reports: Optional[str] = ''
+
 class PrivacyFeature(BaseModel):
     profile_visibility: Optional[bool] = False
     contact_information: Optional[bool] = False

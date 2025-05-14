@@ -39,7 +39,11 @@ const ApiStrings = {
     BILLING_PORTAL: '/pay/billing-portal',
     PAYMENT_DETAILS: '/pay/details',
     // Notification
-    UPDATE_NOTIFICATION: '/notification/update'
+    UPDATE_NOTIFICATION: '/notification/update',
+    // Employer
+    SENT_INVITE: '/employer/invite',
+    GET_INVITES: '/employer/invites',
+    DELETE_INVITE: (id:string) => `/employer/invite/${id}`,
   };
   
   export default ApiStrings;

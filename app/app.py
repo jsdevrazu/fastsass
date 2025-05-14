@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routes.auth_routes import router as auth_routes
+from app.routes.employer_routes import router as employer_routes
 from app.routes.payment_routes import router as payment_routes
 from app.routes.admin_routes import router as admin_routes
 from app.routes.jobs_routes import router as posts_routes
@@ -50,6 +51,7 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(auth_routes, prefix=f"{API_PREFIX}/auth")
+app.include_router(employer_routes, prefix=f"{API_PREFIX}/employer")
 app.include_router(notification_routes, prefix=f"{API_PREFIX}/notification")
 app.include_router(payment_routes, prefix=f"{API_PREFIX}/pay")
 app.include_router(admin_routes, prefix=f"{API_PREFIX}/admin")

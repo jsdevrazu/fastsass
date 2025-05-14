@@ -31,3 +31,16 @@ class ChangePasswordSchema(BaseModel):
 
 class SetPasswordSchema(BaseModel):
     password: str
+
+
+class TeamInviteRequestSchema(BaseModel):
+    full_name: str
+    team_name: str
+    email:EmailStr
+    role: Literal['employer_owner', 'hiring_manager', 'recruiter']
+    invite_message: Optional[str] = None
+
+class SetPasswordInviteSchema(BaseModel):
+    email: EmailStr
+    token: str
+    password: str

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, Literal, List
-from app.models.user_model import NotificationFeature, PrivacyFeature, PreferencesFeature
+from app.models.user_model import NotificationFeature, PrivacyFeature, PreferencesFeature, NotificationFeatureEmployer
 
 class JobSchema(BaseModel):
     title: str
@@ -62,3 +62,4 @@ class UpdateUserPreferences(BaseModel):
     notification_feature: Optional[NotificationFeature] = None
     privacy_feature: Optional[PrivacyFeature] = None
     prefer_settings: Optional[PreferencesFeature] = None
+    employer_notification: Optional[NotificationFeatureEmployer] = None

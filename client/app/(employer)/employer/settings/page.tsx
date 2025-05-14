@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -21,14 +21,24 @@ import ChangePassword from "@/components/account/change-password"
 import DeleteAccount from "@/components/account/delete-account"
 import EmployerProfile from "@/components/account/account-form"
 import { useAuthStore } from "@/store/store"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { create_billing_portal } from "@/lib/apis/payment"
 import { OverlayLock } from "@/components/overlay-lock"
 import Link from "next/link"
+import { emailNotificationEmployerSchema, EmailNotificationSchema } from "@/validation/auth.validation"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { update_notification } from "@/lib/apis/notification"
+import { InviteTeamMemberModal } from "@/components/modals/invite-team-modal"
+import { delete_invite, get_invites } from "@/lib/apis/employer"
+import { DataTable } from "@/components/data-table"
+import { ColumnDef } from "@tanstack/react-table"
+import { baseURLPhoto } from "@/lib/axios"
 
 export default function EmployerSettingsPage() {
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const { user } = useAuthStore()
+    const [inviteModalOpen, setInviteModalOpen] = useState(false)
+    const [page, setPage] = useState(0)
+    const [limit, setLimit] = useState(10)
     const { mutate, isPending } = useMutation({
         mutationFn: create_billing_portal,
         onSuccess: (data) => {
@@ -39,28 +49,103 @@ export default function EmployerSettingsPage() {
         }
     })
 
+    const { data } = useQuery<UsersResponse>({
+        queryKey: ['get_invites'],
+        queryFn: get_invites
+    })
+
+    const { user } = useAuthStore()
+    const { handleSubmit, control, setValue } = useForm<EmailNotificationSchema>({
+        resolver: zodResolver(emailNotificationEmployerSchema)
+    });
+
     const handleRedirect = () => {
         mutate()
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsSubmitting(true)
-
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1500))
-
-            toast.success("Settings updated", {
-                description: "Your settings have been successfully updated.",
-            })
-        } catch (error) {
-            toast.error("Error", {
-                description: "There was an error updating your settings. Please try again.",
-            })
-        } finally {
-            setIsSubmitting(false)
+    const { mutate: mn, isPending: loading } = useMutation({
+        mutationFn: update_notification,
+        onSuccess: () => {
+            toast.success("Settings Update Success")
+        },
+        onError: (error) => {
+            toast.error(error?.message)
         }
+    })
+
+    const { mutate: mnFunc, isPending: deleteLoading } = useMutation({
+        mutationFn: delete_invite,
+        onSuccess: () => {
+            toast.success("Invite deleted successfully")
+        },
+        onError: (error) => {
+            toast.error(error?.message)
+        }
+    })
+
+    const onSubmit = async (data: EmailNotificationSchema) => {
+        const payload = {
+            employer_notification: {
+                ...data
+            }
+        }
+        mn(payload)
     }
+
+    const columns: ColumnDef<UsersEntity>[] = [
+        {
+            accessorKey: "name",
+            header: "User",
+            cell: ({ row }) => (
+                <div className="flex items-center gap-3">
+                    <Avatar>
+                        <AvatarImage
+                            src={baseURLPhoto(row.original?.avatar)}
+                            alt={row.original?.full_name}
+                        />
+                        <AvatarFallback>{row.original.full_name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <div className="font-medium">{row.original.full_name}</div>
+                        <div className="text-sm text-muted-foreground lowercase">{row.original.email}</div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => <Badge variant='default'>{row.original.status}</Badge>,
+        },
+        {
+            accessorKey: "role",
+            header: "Role",
+            cell: ({ row }) => <Badge variant={row.original.role === "employer_owner" ? "default" : "outline"}>{row.original.role}</Badge>,
+        },
+        {
+            accessorKey: "actions",
+            header: "Actions",
+            cell: ({ row }) => (
+                <div className="flex items-center">
+                    <Button disabled={deleteLoading} onClick={() => mnFunc(row.original.id)} variant="ghost" size="sm" className="h-8 px-2 text-destructive">
+                        Delete Invite
+                    </Button>
+                </div>
+            )
+        }
+    ];
+
+
+    useEffect(() => {
+        setValue('analytics_reports', user?.employer_notification?.analytics_reports ?? '')
+        setValue('application_digest', user?.employer_notification?.application_digest ?? '')
+        setValue('application_status_update', user?.employer_notification?.application_status_update ?? false)
+        setValue('candidate_recomandation', user?.employer_notification?.candidate_recomandation ?? false)
+        setValue('marketing_communication', user?.employer_notification?.marketing_communication ?? false)
+        setValue('new_application_email', user?.employer_notification?.marketing_communication ?? false)
+        setValue('job_post_expiration', user?.employer_notification?.job_post_expiration ?? false)
+    }, [user])
+
 
     return (
         <>
@@ -95,97 +180,126 @@ export default function EmployerSettingsPage() {
                                             <CardDescription>Manage the emails you receive from us</CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-base">New Applications</Label>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Receive emails when candidates apply to your job postings
-                                                        </p>
+                                            <form onSubmit={handleSubmit(onSubmit)}>
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                            <Label className="text-base">New Applications</Label>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Receive emails when candidates apply to your job postings
+                                                            </p>
+                                                        </div>
+                                                        <Controller
+                                                            name='new_application_email'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                            )}
+                                                        />
                                                     </div>
-                                                    <Switch defaultChecked />
+                                                    <Separator />
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                            <Label className="text-base">Application Status Updates</Label>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Receive emails when application statuses change
+                                                            </p>
+                                                        </div>
+                                                        <Controller
+                                                            name='application_status_update'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <Separator />
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                            <Label className="text-base">Job Posting Expiration</Label>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Receive emails when your job postings are about to expire
+                                                            </p>
+                                                        </div>
+                                                        <Controller
+                                                            name='job_post_expiration'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <Separator />
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                            <Label className="text-base">Candidate Recommendations</Label>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Receive emails with candidate recommendations for your job postings
+                                                            </p>
+                                                        </div>
+                                                        <Controller
+                                                            name='candidate_recomandation'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <Separator />
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="space-y-0.5">
+                                                            <Label className="text-base">Marketing Communications</Label>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Receive emails about new features, tips, and promotions
+                                                            </p>
+                                                        </div>
+                                                        <Controller
+                                                            name='marketing_communication'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                            )}
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-base">Application Status Updates</Label>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Receive emails when application statuses change
-                                                        </p>
-                                                    </div>
-                                                    <Switch defaultChecked />
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="application-digest">Application Digest</Label>
+                                                    <Select defaultValue="daily">
+                                                        <SelectTrigger id="application-digest">
+                                                            <SelectValue placeholder="Select frequency" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="realtime">Real-time</SelectItem>
+                                                            <SelectItem value="daily">Daily</SelectItem>
+                                                            <SelectItem value="weekly">Weekly</SelectItem>
+                                                            <SelectItem value="never">Never</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
                                                 </div>
-                                                <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-base">Job Posting Expiration</Label>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Receive emails when your job postings are about to expire
-                                                        </p>
-                                                    </div>
-                                                    <Switch defaultChecked />
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="analytics-reports">Analytics Reports</Label>
+                                                    <Select defaultValue="weekly">
+                                                        <SelectTrigger id="analytics-reports">
+                                                            <SelectValue placeholder="Select frequency" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="daily">Daily</SelectItem>
+                                                            <SelectItem value="weekly">Weekly</SelectItem>
+                                                            <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                                                            <SelectItem value="monthly">Monthly</SelectItem>
+                                                            <SelectItem value="never">Never</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
                                                 </div>
-                                                <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-base">Candidate Recommendations</Label>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Receive emails with candidate recommendations for your job postings
-                                                        </p>
-                                                    </div>
-                                                    <Switch defaultChecked />
-                                                </div>
-                                                <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-base">Marketing Communications</Label>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Receive emails about new features, tips, and promotions
-                                                        </p>
-                                                    </div>
-                                                    <Switch />
-                                                </div>
-                                            </div>
+                                                <Button type="submit" disabled={loading} className="mt-5">
+                                                    {loading ? "Saving..." : "Save Notification Settings"}
+                                                </Button>
+                                            </form>
                                         </CardContent>
                                     </Card>
 
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Notification Frequency</CardTitle>
-                                            <CardDescription>Choose how often you want to receive notifications</CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="application-digest">Application Digest</Label>
-                                                <Select defaultValue="daily">
-                                                    <SelectTrigger id="application-digest">
-                                                        <SelectValue placeholder="Select frequency" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="realtime">Real-time</SelectItem>
-                                                        <SelectItem value="daily">Daily</SelectItem>
-                                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                                        <SelectItem value="never">Never</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="analytics-reports">Analytics Reports</Label>
-                                                <Select defaultValue="weekly">
-                                                    <SelectTrigger id="analytics-reports">
-                                                        <SelectValue placeholder="Select frequency" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="daily">Daily</SelectItem>
-                                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                                        <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                                                        <SelectItem value="monthly">Monthly</SelectItem>
-                                                        <SelectItem value="never">Never</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
                                 </TabsContent>
 
                                 <TabsContent value="billing" className="space-y-4">
@@ -256,47 +370,24 @@ export default function EmployerSettingsPage() {
                                         </CardHeader>
                                         <CardContent className="space-y-4">
                                             <div className="flex justify-end">
-                                                <Button>
+                                                <Button onClick={() => setInviteModalOpen(true)}>
                                                     <Users className="mr-2 h-4 w-4" />
                                                     Invite Team Member
                                                 </Button>
                                             </div>
-                                            <div className="rounded-md border">
-                                                <div className="grid grid-cols-5 border-b p-3 text-sm font-medium">
-                                                    <div className="col-span-2">Name</div>
-                                                    <div>Email</div>
-                                                    <div>Role</div>
-                                                    <div>Actions</div>
-                                                </div>
-                                                <div className="divide-y">
-                                                    {teamMembers.map((member) => (
-                                                        <div key={member.id} className="grid grid-cols-5 p-3 text-sm">
-                                                            <div className="col-span-2 flex items-center gap-3">
-                                                                <Avatar className="h-8 w-8">
-                                                                    <AvatarImage
-                                                                        src={`/placeholder.svg?height=32&width=32&text=${member.name.charAt(0)}`}
-                                                                        alt={member.name}
-                                                                    />
-                                                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <span className="font-medium">{member.name}</span>
-                                                            </div>
-                                                            <div className="flex items-center">{member.email}</div>
-                                                            <div className="flex items-center">
-                                                                <Badge variant={member.role === "Admin" ? "default" : "outline"}>{member.role}</Badge>
-                                                            </div>
-                                                            <div className="flex items-center">
-                                                                <Button variant="ghost" size="sm" className="h-8 px-2">
-                                                                    Edit
-                                                                </Button>
-                                                                <Button variant="ghost" size="sm" className="h-8 px-2 text-destructive">
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            <DataTable
+                                                columns={columns}
+                                                data={data?.users ?? []}
+                                                page={page}
+                                                limit={limit}
+                                                totalRows={data?.total || 0}
+                                                searchKey='name'
+                                                searchPlaceholder="Search by applicant name..."
+                                                onPaginationChange={(newPage, newLimit) => {
+                                                    setPage(newPage);
+                                                    setLimit(newLimit);
+                                                }}
+                                            />
                                         </CardContent>
                                     </Card>
 
@@ -370,8 +461,8 @@ export default function EmployerSettingsPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-                                                {isSubmitting ? "Saving..." : "Save Permissions"}
+                                            <Button type="button" disabled={isPending}>
+                                                {isPending ? "Saving..." : "Save Permissions"}
                                             </Button>
                                         </CardContent>
                                     </Card>
@@ -381,34 +472,7 @@ export default function EmployerSettingsPage() {
                     </main>
                 </div>
             </div>
+            <InviteTeamMemberModal open={inviteModalOpen} onOpenChange={setInviteModalOpen} />
         </>
     )
 }
-
-
-const teamMembers = [
-    {
-        id: "1",
-        name: "David Wilson",
-        email: "david.wilson@techcorp.com",
-        role: "Admin",
-    },
-    {
-        id: "2",
-        name: "Sarah Johnson",
-        email: "sarah.johnson@techcorp.com",
-        role: "Recruiter",
-    },
-    {
-        id: "3",
-        name: "Michael Brown",
-        email: "michael.brown@techcorp.com",
-        role: "Hiring Manager",
-    },
-    {
-        id: "4",
-        name: "Emily Davis",
-        email: "emily.davis@techcorp.com",
-        role: "Recruiter",
-    },
-]

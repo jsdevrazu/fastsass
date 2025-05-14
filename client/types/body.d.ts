@@ -53,3 +53,11 @@ interface NotificationPayload {
     recomandation_frequency: string
   }
 }
+
+interface InviteBodyPayload {
+  full_name: string
+  team_name: string
+  email: string
+  role: string
+  invite_message?: string
+}
