@@ -61,3 +61,9 @@ interface InviteBodyPayload {
   role: string
   invite_message?: string
 }
+
+interface InviteSetPasswordPayload{
+  token:string
+  email:string
+  password: string
+}

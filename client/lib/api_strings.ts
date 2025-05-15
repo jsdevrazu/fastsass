@@ -43,6 +43,7 @@ const ApiStrings = {
     // Employer
     SENT_INVITE: '/employer/invite',
     GET_INVITES: '/employer/invites',
+    SET_PASSWORD_EMPLOYER: '/employer/set-password',
     DELETE_INVITE: (id:string) => `/employer/invite/${id}`,
   };
   

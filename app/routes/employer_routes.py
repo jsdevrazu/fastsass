@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from app.utils.error_handler import api_error
 from app.auth.jwt_handler import require_role, get_current_user, hash_password
 from app.db.mongo import db
@@ -8,7 +8,6 @@ from uuid import uuid4
 from datetime import datetime, timezone
 from app.configs.settings import settings
 from app.utils.send_email import send_email
-
 
 router = APIRouter()
 
@@ -23,6 +22,10 @@ def invite_team_member(
     existing_invite = db.team_invites.find_one({"email": body.email, "status": "pending"})
     if existing_invite:
         api_error(400, "User already invited.")
+
+    existing_user = db.users.find_one({"email": body.email })
+    if existing_user:
+        api_error(400, "User already exist another role.")
 
     invite_token = str(uuid4())
 

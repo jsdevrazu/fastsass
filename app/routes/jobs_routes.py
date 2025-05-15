@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, UploadFile, File
+from fastapi import APIRouter, Depends, Query
 from pymongo.errors import PyMongoError
 from app.utils.error_handler import api_error
 from app.validation_schema.post_validation_schema import JobSchema
@@ -15,6 +15,65 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from typing import Optional
+import os
+from PyPDF2 import PdfReader
+from openai import OpenAI
+from app.configs.settings import settings
+
+
+client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=settings.open_api_key,
+)
+
+
+def extract_structured_data_from_resume(text: str) -> str:
+    prompt = f"""You are a professional resume parser. Extract key structured information from the following resume text:
+    Return the result in JSON format with the following fields:
+    - full_name
+    - email
+    - phone
+    - location
+    - linkedin
+    - github
+    - website
+    - education (list of degree, institution, year)
+    - experience (list of job_title, company, duration, description)
+    - skills (list of skills)
+
+    Respond only with JSON format and no explanation.
+
+    Resume Content:
+    \"\"\"
+    {text}
+    \"\"\"
+    """
+    response = client.chat.completions.create(
+        model="meta-llama/llama-4-maverick:free",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
+    )
+
+    raw_output = response.choices[0].message.content or ''
+
+    try:
+      return raw_output
+    except Exception as error:
+        print("Openrouter app", error)
+        return ''
+    
+def extract_text_from_pdf(file_path: str) -> str:
+    full_path = os.path.join(os.getcwd(), file_path)
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"Resume not found at {full_path}")
+
+    reader = PdfReader(full_path)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() or ""
+    return text.strip()
+
+
 
 router = APIRouter()
 
@@ -1310,62 +1369,80 @@ def get_candidates(
             "applicants": applicants
         }
 
-
 @router.get("/job-apps/{user_id}")
 def get_spefic_job_applications(
-    user_id:str, 
+    user_id: str, 
     user=Depends(require_role('employer'))
 ):
     pipeline = [
-        {"$match": { "applicate": ObjectId(user_id)}},
+        {"$match": {"applicate": ObjectId(user_id)}},
         {
-           "$lookup": {
-                    "from": "users",
-                    "localField": "applicate",
-                    "foreignField": "_id",
-                    "as": "applicant"
-                }
+            "$lookup": {
+                "from": "users",
+                "localField": "applicate",
+                "foreignField": "_id",
+                "as": "applicant"
+            }
         },
         {"$unwind": "$applicant"},
         {
-                "$lookup": {
-                    "from": "jobs",
-                    "localField": "job_id",
-                    "foreignField": "_id",
-                    "as": "job"
-                }
-            },
+            "$lookup": {
+                "from": "jobs",
+                "localField": "job_id",
+                "foreignField": "_id",
+                "as": "job"
+            }
+        },
         {"$unwind": "$job"},
         {
-                "$project": {
-                    "_id": {"$toString": "$_id"},
-                    "job_id": {"$toString": "$job._id"},
-                    "job_title": "$job.title",
-                    "first_name": "$applicant.first_name",
-                    "avatar": "$applicant.avatar",
-                    "last_name": "$applicant.last_name",
-                    "email": "$applicant.email",
-                    "resume": "$applicant.resume",
-                    "location": "$applicant.location",
-                    "education": "$applicant.education",
-                    "user_experience": "$applicant.experience",
-                    "github_profile": "$applicant.github_profile",
-                    "linkedin_profile": "$applicant.linkedin_profile",
-                    "website": "$applicant.website",
-                    "phone_number": "$applicant.phone_number",
-                    "skills": "$applicant.skills",
-                    "application_status": 1,
-                    "cover_letter": 1,
-                    "experience": 1,
-                    "skills": "$job.skills",
-                    "applied_at": "$created_at"
-                }
+            "$project": {
+                "_id": {"$toString": "$_id"},
+                "job_id": {"$toString": "$job._id"},
+                "job_title": "$job.title",
+                "first_name": "$applicant.first_name",
+                "avatar": "$applicant.avatar",
+                "last_name": "$applicant.last_name",
+                "email": "$applicant.email",
+                "resume": "$applicant.resume",
+                "location": "$applicant.location",
+                "education": "$applicant.education",
+                "user_experience": "$applicant.experience",
+                "github_profile": "$applicant.github_profile",
+                "linkedin_profile": "$applicant.linkedin_profile",
+                "website": "$applicant.website",
+                "phone_number": "$applicant.phone_number",
+                "application_status": 1,
+                "cover_letter": 1,
+                "experience": 1,
+                "summary": "$applicant.summary",
+                "applied_at": "$created_at",
+                "job_skills": "$job.skills",
+                "user_skills": "$applicant.skills"
             }
+        }
     ]
 
-    applicants = list(db.applications.aggregate(pipeline))
-     
+    raw_data = list(db.applications.aggregate(pipeline))
+
+    if not raw_data:
+        return {"message": "No application found", "applicants": None}
+
+    for app in raw_data:
+        job_info = {"skills": app.get("job_skills", [])}
+        user_info = {"skills": app.get("user_skills", [])}
+        app["match_percentage"] = calculate_match_percentage(job_info, user_info)
+        resume_path = app.get("resume")
+        print("resume_path", resume_path)  
+        if resume_path:
+            try:
+                text = extract_text_from_pdf(resume_path)
+                app["resume_summary"] = extract_structured_data_from_resume(text)
+            except Exception as e:
+                app["resume_summary"] = ""
+        else:
+            app["resume_summary"] = ""
+
     return {
-          "message": "succcess",
-          "applicants": applicants[0]
+        "message": "Success",
+        "applicants": raw_data[0] 
     }

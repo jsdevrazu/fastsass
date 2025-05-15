@@ -11,6 +11,11 @@ export const get_invites = async (): Promise<UsersResponse> => {
   return response.data;
 }
 
+export const set_password = async (payload:InviteSetPasswordPayload) => {
+  const response = await api.post(ApiStrings.SET_PASSWORD_EMPLOYER, payload);
+  return response.data;
+}
+
 export const delete_invite = async (id: string) => {
   const response = await api.delete(ApiStrings.DELETE_INVITE(id));
   return response.data;

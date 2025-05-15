@@ -54,9 +54,10 @@ interface JobApplicationResponse {
   message: string;
   applicants?: SingleApplicant;
 }
- interface SingleApplicant {
+interface SingleApplicant {
   cover_letter: string;
   experience: string;
+  summary: string;
   application_status: string;
   _id: string;
   job_id: string;
@@ -68,15 +69,27 @@ interface JobApplicationResponse {
   resume: string;
   location: string;
   education: Education;
-  user_experience?: (null)[] | null;
+  user_experience?: (Experience)[] | null;
   github_profile: string;
   linkedin_profile: string;
   website: string;
   phone_number: string;
-  skills?: (string)[] | null;
+  job_skills?: (string)[] | null;
   applied_at: string;
+  match_percentage: number
+  resume_summary: string
 }
- interface Education {
+
+interface Experience {
+  id: str
+  title: str
+  company_name: str
+  start_date: str
+  end_date: str
+  currently_work: bool
+  job_description: str
+}
+interface Education {
   degree_name: string;
   start_date: string;
   end_date: string;
@@ -139,14 +152,14 @@ interface EmployerStats {
   jobs_view: 0
 }
 
- interface RecentApplication {
+interface RecentApplication {
   applicants?: (ApplicantsEntity)[] | null;
-   message: string;
-    page: number;
-    limit: number;
-    total: number;
+  message: string;
+  page: number;
+  limit: number;
+  total: number;
 }
- interface ApplicantsEntity {
+interface ApplicantsEntity {
   _id: string;
   user_id: string;
   job_id: string;
@@ -162,10 +175,10 @@ interface EmployerStats {
 }
 
 
- interface ActiveJobs {
+interface ActiveJobs {
   jobs?: (ActiveJobsEntity)[] | null;
 }
- interface ActiveJobsEntity {
+interface ActiveJobsEntity {
   _id: string;
   title: string;
   location: string;
@@ -177,14 +190,14 @@ interface EmployerStats {
 }
 
 
- interface CompanyResponse {
+interface CompanyResponse {
   message: string;
   page: number;
   limit: number;
   total: number;
   companies?: (CompaniesEntity)[] | null;
 }
- interface CompaniesEntity {
+interface CompaniesEntity {
   name: string;
   company_description: string;
   company_size: string;
@@ -196,17 +209,17 @@ interface EmployerStats {
   _id: string;
 }
 
- interface SingleCompanyResponse {
+interface SingleCompanyResponse {
   message: string;
   company: Company;
 }
 
 
- interface MyJobsResponse {
+interface MyJobsResponse {
   message: string;
   jobs?: (MyJobs)[] | null;
 }
- interface MyJobs {
+interface MyJobs {
   title: string;
   job_type: string;
   status: string;
@@ -218,19 +231,19 @@ interface EmployerStats {
   _id: string;
   total_applications: number
 }
- interface PostedByUser {
+interface PostedByUser {
   name: string;
   logo: string;
   _id: string;
 }
 
 
- interface CandidatesResponse {
+interface CandidatesResponse {
   message: string;
   total: number;
   applicants?: (Candidates)[] | null;
 }
- interface Candidates {
+interface Candidates {
   cover_letter: string;
   experience: string;
   _id: string;
@@ -247,11 +260,11 @@ interface EmployerStats {
   skills: string[]
 }
 
- interface UsersResponse {
+interface UsersResponse {
   users?: (UsersEntity)[] | null;
   total: number
 }
- interface UsersEntity {
+interface UsersEntity {
   id: string;
   avatar: string;
   full_name: string;

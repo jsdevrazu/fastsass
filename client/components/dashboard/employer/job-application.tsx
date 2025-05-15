@@ -21,7 +21,6 @@ import {
     Phone,
     ThumbsDown,
     ThumbsUp,
-    Twitter,
 } from "lucide-react"
 import { ResumePreview } from "@/components/resume-preview"
 import { ScheduleInterviewModal } from "@/components/modals/schedule-interview-modal"
@@ -49,10 +48,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
     const [currentStatus, setCurrentStatus] = useState("Reviewed")
     const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
     const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
-    const [notes, setNotes] = useState("")
-    const [isSubmittingNotes, setIsSubmittingNotes] = useState(false)
 
-    const application = allApplications.find((app) => app.id === id) || allApplications[0]
 
     const handleStatusChange = (newStatus: string) => {
         setCurrentStatus(newStatus)
@@ -61,6 +57,16 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
             description: `Application status changed to ${newStatus}`,
         })
     }
+
+    const handleDownload = (name: string, url: string) => {
+        const resumeUrl = baseURLPhoto(url);
+        const link = document.createElement("a");
+        link.href = resumeUrl;
+        link.setAttribute("download", `${name}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
 
     if (isLoading) return <ApplicationDetailsLoading />
 
@@ -91,7 +97,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                         <p className="text-sm text-muted-foreground">Applied on {moment(user_details?.applied_at).format("MMM Do YY")}</p>
 
                         <div className="hidden md:flex md:gap-2">
-                            <Button variant="outline" size="sm" className="gap-1">
+                            <Button onClick={() => handleDownload(user_details?.first_name ?? '', user_details?.resume ?? '')} variant="outline" size="sm" className="gap-1">
                                 <Download className="h-4 w-4" />
                                 <span>Resume</span>
                             </Button>
@@ -109,7 +115,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
             </div>
 
             <div className="mb-6 flex gap-2 md:hidden">
-                <Button variant="outline" size="sm" className="flex-1 gap-1">
+                <Button onClick={() => handleDownload(user_details?.first_name ?? '', user_details?.resume ?? '')} variant="outline" size="sm" className="flex-1 gap-1">
                     <Download className="h-4 w-4" />
                     <span>Resume</span>
                 </Button>
@@ -138,14 +144,18 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                     </Avatar>
 
                                     <div className="mt-4 flex w-full flex-col gap-2">
-                                        <Button variant="outline" size="sm" className="w-full gap-1">
-                                            <Mail className="h-4 w-4" />
-                                            <span>Email</span>
-                                        </Button>
-                                        <Button variant="outline" size="sm" className="w-full gap-1">
-                                            <Phone className="h-4 w-4" />
-                                            <span>Call</span>
-                                        </Button>
+                                        <Link href={`mailto:${user_details?.email}`}>
+                                            <Button variant="outline" size="sm" className="w-full gap-1">
+                                                <Mail className="h-4 w-4" />
+                                                <span>Email</span>
+                                            </Button>
+                                        </Link>
+                                        <Link href={`tel:${user_details?.phone_number}`}>
+                                            <Button variant="outline" size="sm" className="w-full gap-1">
+                                                <Phone className="h-4 w-4" />
+                                                <span>Call</span>
+                                            </Button>
+                                        </Link>
 
                                         <div className="mt-2 flex justify-center gap-2">
                                             <Link href={user_details?.linkedin_profile ?? ''} target="_blank">
@@ -171,41 +181,45 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div>
                                             <h3 className="text-sm font-medium text-muted-foreground">Contact</h3>
-                                            <p className="mt-1">{application.email}</p>
-                                            <p className="mt-1">+1 (555) 123-4567</p>
+                                            <p className="mt-1">{user_details?.email}</p>
+                                            <p className="mt-1">{user_details?.phone_number}</p>
                                         </div>
 
                                         <div>
                                             <h3 className="text-sm font-medium text-muted-foreground">Location</h3>
                                             <div className="mt-1 flex items-center gap-1">
                                                 <MapPin className="h-3 w-3 text-muted-foreground" />
-                                                <span>San Francisco, CA</span>
+                                                <span>{user_details?.location}</span>
                                             </div>
                                             <p className="mt-1 text-sm text-muted-foreground">Available for relocation</p>
                                         </div>
 
                                         <div>
                                             <h3 className="text-sm font-medium text-muted-foreground">Experience</h3>
-                                            <p className="mt-1">5+ years</p>
-                                            <p className="mt-1 text-sm text-muted-foreground">Senior Developer at TechCorp (2020-Present)</p>
+                                            {
+                                                user_details?.experience ? <>
+                                                    <p className="mt-1">{user_details?.experience}</p>
+                                                </> : <p>No experience available </p>
+                                            }
                                         </div>
 
                                         <div>
                                             <h3 className="text-sm font-medium text-muted-foreground">Education</h3>
-                                            <p className="mt-1">B.S. Computer Science</p>
-                                            <p className="mt-1 text-sm text-muted-foreground">University of California (2015-2019)</p>
+                                            {
+                                                user_details?.education.institution ? <>
+                                                    <p className="mt-1">{user_details?.education?.degree_name}</p>
+                                                    <p className="mt-1 text-sm text-muted-foreground">{user_details?.education?.institution} ({user_details?.education?.start_date} - {user_details?.education?.end_date})</p>
+                                                </> : <p>No education available </p>
+                                            }
                                         </div>
                                     </div>
 
                                     <div className="mt-4">
                                         <h3 className="text-sm font-medium text-muted-foreground">Skills</h3>
                                         <div className="mt-2 flex flex-wrap gap-2">
-                                            <Badge variant="secondary">React</Badge>
-                                            <Badge variant="secondary">TypeScript</Badge>
-                                            <Badge variant="secondary">Node.js</Badge>
-                                            <Badge variant="secondary">GraphQL</Badge>
-                                            <Badge variant="secondary">AWS</Badge>
-                                            <Badge variant="secondary">Docker</Badge>
+                                            {user_details?.job_skills?.map((item) => (
+                                                <Badge key={item} variant="secondary">{item}</Badge>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -220,59 +234,16 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                         </TabsList>
                         <TabsContent value="resume" className="mt-4">
                             <Card>
-                                <CardHeader className="pb-2">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle>Resume</CardTitle>
-                                        <Button variant="outline" size="sm" className="gap-1">
-                                            <Download className="h-4 w-4" />
-                                            <span>Download</span>
-                                        </Button>
-                                    </div>
-                                </CardHeader>
                                 <CardContent>
-                                    <ResumePreview applicantName={application.applicant} />
+                                    <ResumePreview user={user_details} />
                                 </CardContent>
                             </Card>
                         </TabsContent>
                         <TabsContent value="cover-letter" className="mt-4">
                             <Card>
-                                <CardHeader className="pb-2">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle>Cover Letter</CardTitle>
-                                        <Button variant="outline" size="sm" className="gap-1">
-                                            <Download className="h-4 w-4" />
-                                            <span>Download</span>
-                                        </Button>
-                                    </div>
-                                </CardHeader>
                                 <CardContent>
                                     <div className="prose max-w-none dark:prose-invert">
-                                        <p>Dear Hiring Manager,</p>
-                                        <p>
-                                            I am writing to express my interest in the {application.job} position at your company. With over 5
-                                            years of experience in software development and a strong background in the technologies mentioned
-                                            in the job description, I believe I would be an excellent fit for your team.
-                                        </p>
-                                        <p>
-                                            In my current role as a Senior Developer at TechCorp, I have led the development of several key
-                                            projects that have significantly improved our product offerings and customer satisfaction. I have
-                                            extensive experience with React, TypeScript, and Node.js, which I understand are primary
-                                            technologies used in your stack.
-                                        </p>
-                                        <p>
-                                            I am particularly excited about the opportunity to work on innovative solutions and contribute to
-                                            your company's growth. My collaborative approach to problem-solving and my commitment to writing
-                                            clean, maintainable code would make me a valuable addition to your development team.
-                                        </p>
-                                        <p>
-                                            Thank you for considering my application. I look forward to the possibility of discussing how my
-                                            skills and experience align with your needs.
-                                        </p>
-                                        <p>
-                                            Sincerely,
-                                            <br />
-                                            {application.applicant}
-                                        </p>
+                                        {user_details?.cover_letter}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -311,9 +282,9 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                 <div>
                                     <div className="mb-2 flex items-center justify-between">
                                         <span className="text-sm font-medium">Match Score</span>
-                                        <span className="text-sm font-medium">{application.match}%</span>
+                                        <span className="text-sm font-medium">{user_details?.match_percentage}%</span>
                                     </div>
-                                    <Progress value={application.match} className="h-2" />
+                                    <Progress value={user_details?.match_percentage} className="h-2" />
                                 </div>
 
                                 <div className="pt-2">
@@ -348,15 +319,15 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
             <ScheduleInterviewModal
                 isOpen={isInterviewModalOpen}
                 onClose={() => setIsInterviewModalOpen(false)}
-                applicantName={application.applicant}
-                jobTitle={application.job}
+                applicantName={`${user_details?.first_name} ${user_details?.last_name}`}
+                jobTitle={user_details?.job_title ?? ''}
             />
 
             <SendMessageModal
                 isOpen={isMessageModalOpen}
                 onClose={() => setIsMessageModalOpen(false)}
-                applicantName={application.applicant}
-                applicantEmail={application.email}
+                applicantName={`${user_details?.first_name} ${user_details?.last_name}`}
+                applicantEmail={user_details?.email ?? ''}
             />
         </>
     )
@@ -382,69 +353,3 @@ function getStatusVariant(status: string) {
             return "outline"
     }
 }
-
-const allApplications = [
-    {
-        id: "1",
-        applicant: "John Smith",
-        email: "john.smith@example.com",
-        job: "Senior Frontend Developer",
-        status: "Reviewed",
-        date: "May 16, 2023",
-        match: 85,
-    },
-    {
-        id: "2",
-        applicant: "Sarah Johnson",
-        email: "sarah.johnson@example.com",
-        job: "UX/UI Designer",
-        status: "Interviewed",
-        date: "May 15, 2023",
-        match: 92,
-    },
-    {
-        id: "3",
-        applicant: "Michael Brown",
-        email: "michael.brown@example.com",
-        job: "Backend Engineer",
-        status: "Pending",
-        date: "May 14, 2023",
-        match: 78,
-    },
-    {
-        id: "4",
-        applicant: "Emily Davis",
-        email: "emily.davis@example.com",
-        job: "Product Manager",
-        status: "Rejected",
-        date: "May 13, 2023",
-        match: 65,
-    },
-    {
-        id: "5",
-        applicant: "David Wilson",
-        email: "david.wilson@example.com",
-        job: "DevOps Engineer",
-        status: "Pending",
-        date: "May 12, 2023",
-        match: 80,
-    },
-    {
-        id: "6",
-        applicant: "Jennifer Lee",
-        email: "jennifer.lee@example.com",
-        job: "Senior Frontend Developer",
-        status: "Interviewed",
-        date: "May 11, 2023",
-        match: 88,
-    },
-    {
-        id: "7",
-        applicant: "Robert Taylor",
-        email: "robert.taylor@example.com",
-        job: "Backend Engineer",
-        status: "Reviewed",
-        date: "May 10, 2023",
-        match: 75,
-    },
-]
