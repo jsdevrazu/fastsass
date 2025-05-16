@@ -60,6 +60,7 @@ interface SingleApplicant {
   summary: string;
   application_status: string;
   _id: string;
+  user_id: string;
   job_id: string;
   job_title: string;
   first_name: string;
@@ -117,6 +118,10 @@ interface StatsResponse {
   interviewed: number;
   save_jobs: number;
   profile_views: number;
+}
+
+interface CoverLetterResponse{
+  cover_letter: string
 }
 
 
@@ -273,4 +278,33 @@ interface UsersEntity {
   status: string;
   created_at: string;
   invite_message: string;
+}
+
+
+ interface JobResponseApplications {
+  message: string;
+  title: string;
+  total:number;
+  applications?: (JobApplicationsEntity)[] | null;
+}
+ interface JobApplicationsEntity {
+  created_at: string;
+  application_status: string;
+  _id: string;
+  job_id: string;
+  user_id: string;
+  title: string;
+  email: string;
+  avatar: string;
+  first_name: string;
+  last_name: string;
+  job_skills?: (string)[] | null;
+  user_skills?: (JobUserSkillsEntity)[] | null;
+  resume: string;
+  match_percentage: number;
+}
+ interface JobUserSkillsEntity {
+  id: string;
+  name: string;
+  level: string;
 }

@@ -5,15 +5,16 @@ import { Eye, EyeOff } from "lucide-react";
 
 interface InputProps extends React.ComponentProps<"input"> {
   error?: string;
+  classNameRoot?:string
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, type = "text", ...props }, ref) => {
+  ({ className, classNameRoot, error, type = "text", ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const isPassword = type === "password";
 
     return (
-      <div className="relative">
+      <div className={cn("relative", classNameRoot)}>
         <input
           type={isPassword && showPassword ? "text" : type}
           className={cn(

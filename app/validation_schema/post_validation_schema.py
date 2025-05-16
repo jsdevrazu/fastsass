@@ -63,3 +63,11 @@ class UpdateUserPreferences(BaseModel):
     privacy_feature: Optional[PrivacyFeature] = None
     prefer_settings: Optional[PreferencesFeature] = None
     employer_notification: Optional[NotificationFeatureEmployer] = None
+
+
+class CoverLetterInput(BaseModel):
+    full_name: str
+    position: str
+    company_name: str
+    skills: List[str]
+    experience: str

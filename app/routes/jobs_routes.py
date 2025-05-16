@@ -8,7 +8,7 @@ from app.auth.jwt_handler import require_role, get_current_user, optional_get_cu
 from app.utils.helper import slugify, calculate_match_percentage
 from datetime import datetime, timedelta, timezone
 from app.db.mongo import db
-from app.validation_schema.post_validation_schema import UpdateJobSchema, ApplicationStatus, ApplicationSchema, ReviewsRatinsSchema
+from app.validation_schema.post_validation_schema import UpdateJobSchema, ApplicationStatus, ApplicationSchema, ReviewsRatinsSchema, CoverLetterInput
 from datetime import datetime
 from fastapi.responses import StreamingResponse
 from io import BytesIO
@@ -19,6 +19,7 @@ import os
 from PyPDF2 import PdfReader
 from openai import OpenAI
 from app.configs.settings import settings
+from app.constant.index import AI_MODEL
 
 
 client = OpenAI(
@@ -31,14 +32,16 @@ def extract_structured_data_from_resume(text: str) -> str:
     prompt = f"""You are a professional resume parser. Extract key structured information from the following resume text:
     Return the result in JSON format with the following fields:
     - full_name
+    - title
+    - summary or about us
     - email
     - phone
     - location
     - linkedin
-    - github
     - website
-    - education (list of degree, institution, year)
-    - experience (list of job_title, company, duration, description)
+    - github
+    - education (list of degree, institution, year, gpa, year: Graduated Year)
+    - experience (list of job_title, company, duration, description: list of strings, location: default value remote if not found location)
     - skills (list of skills)
 
     Respond only with JSON format and no explanation.
@@ -49,7 +52,7 @@ def extract_structured_data_from_resume(text: str) -> str:
     \"\"\"
     """
     response = client.chat.completions.create(
-        model="meta-llama/llama-4-maverick:free",
+        model=AI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )
@@ -59,7 +62,6 @@ def extract_structured_data_from_resume(text: str) -> str:
     try:
       return raw_output
     except Exception as error:
-        print("Openrouter app", error)
         return ''
     
 def extract_text_from_pdf(file_path: str) -> str:
@@ -979,15 +981,12 @@ def get_recent_applicants(
     days: int = Query(10, ge=1),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1),
-    job_id: Optional[str] = None,
 ):
     company_id = ObjectId(user["company_id"])
     since_date = datetime.now(timezone.utc) - timedelta(days=days)
     skip = (page - 1) * limit
 
     job_query = {"company_name": company_id, "status": "active"}
-    if job_id:
-        job_query["_id"] = ObjectId(job_id)
 
     jobs = list(db.jobs.find(job_query))
     job_id_map = {job["_id"]: job for job in jobs}
@@ -1397,6 +1396,7 @@ def get_spefic_job_applications(
         {
             "$project": {
                 "_id": {"$toString": "$_id"},
+                "user_id": {"$toString": "$applicant._id"},
                 "job_id": {"$toString": "$job._id"},
                 "job_title": "$job.title",
                 "first_name": "$applicant.first_name",
@@ -1432,7 +1432,6 @@ def get_spefic_job_applications(
         user_info = {"skills": app.get("user_skills", [])}
         app["match_percentage"] = calculate_match_percentage(job_info, user_info)
         resume_path = app.get("resume")
-        print("resume_path", resume_path)  
         if resume_path:
             try:
                 text = extract_text_from_pdf(resume_path)
@@ -1445,4 +1444,100 @@ def get_spefic_job_applications(
     return {
         "message": "Success",
         "applicants": raw_data[0] 
+    }
+
+@router.post("/generate-cover-letter")
+def generate_cover_letter(data:CoverLetterInput, user=Depends(require_role('job_seeker'))):
+
+    prompt = f"""
+    Write a professional cover letter for the following candidate:
+
+    Name: {data.full_name}
+    Position: {data.position}
+    Company: {data.company_name}
+    Years of Experience: {data.experience}
+    Skills: {", ".join(data.skills)}
+
+    The tone should be formal and confident.
+    """
+
+    response = client.chat.completions.create(
+            model=AI_MODEL,  
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+    
+    generated_text = response.choices[0].message.content.strip() or 'not able to generate cover letter '
+    return { "cover_letter": generated_text }
+
+
+@router.get("/get-applications/{job_id}")
+def get_job_spefic_applications(
+    job_id:str, 
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    user=Depends(require_role('employer'))
+):
+    job = db.jobs.find_one({"_id": ObjectId(job_id)})
+    if not job:
+        api_error(404, "Job not found")
+
+    skip = (page-1) * limit
+    pipeline = [
+        {"$match": {
+            "job_id": ObjectId(job_id)
+        }},
+        {
+            "$lookup":{
+                "from": "users",
+                "localField":"applicate",
+                "foreignField":"_id",
+                "as": "user"
+            }
+        },
+        {"$unwind": {"path": "$user", "preserveNullAndEmptyArrays": True}},
+        {
+            "$lookup":{
+                "from": "jobs",
+                "localField":"job_id",
+                "foreignField":"_id",
+                "as": "job"
+            }
+        },
+        {"$unwind": {"path": "$job", "preserveNullAndEmptyArrays": True}},
+        {"$skip": skip},
+        {"$limit": limit},
+        {
+            "$project":{
+                "_id": {"$toString": "$_id"},
+                "job_id": {"$toString": "$job._id"},
+                "user_id": {"$toString": "$user._id"},
+                "title": "$job.title",
+                "email": "$user.email",
+                "avatar": "$user.avatar",
+                "first_name": "$user.first_name",
+                "last_name": "$user.last_name",
+                "application_status":1,
+                "created_at": 1,
+                "job_skills": "$job.skills",
+                "user_skills": "$user.skills",
+                "resume": "$user.resume",
+            }
+        }
+    ]
+
+    raw_data = list(db.applications.aggregate(pipeline))
+
+    for app in raw_data:
+        job_info = {"skills": app.get("job_skills", [])}
+        user_info = {"skills": app.get("user_skills", [])}
+        app["match_percentage"] = calculate_match_percentage(job_info, user_info)
+    
+    total = db.applications.count_documents({ "job_id": ObjectId(job_id)})
+    
+    return {
+        "message":"success",
+        "title": job.get("title", ""),
+        "applications": raw_data,
+        "total": total
     }

@@ -19,45 +19,60 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
+import { useMutation } from "@tanstack/react-query"
+import { interview_invite } from "@/lib/apis/employer"
 
 interface ScheduleInterviewModalProps {
   isOpen: boolean
   onClose: () => void
   applicantName: string
   jobTitle: string
+  id: string
 }
 
-export function ScheduleInterviewModal({ isOpen, onClose, applicantName, jobTitle }: ScheduleInterviewModalProps) {
+export function ScheduleInterviewModal({ isOpen, onClose, applicantName, jobTitle, id }: ScheduleInterviewModalProps) {
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState("")
   const [interviewType, setInterviewType] = useState("video")
   const [location, setLocation] = useState("")
   const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: interview_invite,
+    onSuccess: (_, variables) => {
+      toast.success("Interview scheduled", {
+        description: `Interview with ${applicantName} scheduled for ${format(variables.date, "PPP")} at ${time}`,
+      })
+      onClose()
+      resetForm()
+    },
+    onError: (error) =>{
+      toast.error(error.message)
+    }
+  })
 
   const handleSubmit = () => {
-    if (!date || !time) {
-      toast({
-        title: "Missing information",
+    if (!date || !time || !notes || !interviewType) {
+      toast.error("Missing information", {
         description: "Please select both date and time for the interview",
-        variant: "destructive",
       })
       return
     }
 
-    setIsSubmitting(true)
+    const payload = {
+      name: applicantName,
+      time,
+      date: date.toLocaleDateString(),
+      interview_type: interviewType,
+      notes,
+      id,
+      meet_link: location
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      toast({
-        title: "Interview scheduled",
-        description: `Interview with ${applicantName} scheduled for ${format(date, "PPP")} at ${time}`,
-      })
-      resetForm()
-      onClose()
-    }, 1000)
+    mutate(payload)
+
   }
 
   const resetForm = () => {
@@ -179,8 +194,8 @@ export function ScheduleInterviewModal({ isOpen, onClose, applicantName, jobTitl
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Scheduling..." : "Schedule Interview"}
+          <Button onClick={handleSubmit} disabled={isPending}>
+            {isPending ? "Scheduling..." : "Schedule Interview"}
           </Button>
         </DialogFooter>
       </DialogContent>

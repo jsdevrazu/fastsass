@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     ArrowLeft,
     Calendar,
@@ -19,13 +18,10 @@ import {
     MapPin,
     MessageSquare,
     Phone,
-    ThumbsDown,
-    ThumbsUp,
 } from "lucide-react"
 import { ResumePreview } from "@/components/resume-preview"
 import { ScheduleInterviewModal } from "@/components/modals/schedule-interview-modal"
 import { SendMessageModal } from "@/components/modals/send-message-modal"
-import { toast } from "@/components/ui/use-toast"
 import { useQuery } from "@tanstack/react-query"
 import { get_job_applications } from "@/lib/apis/jobs"
 import ApplicationDetailsLoading from "@/app/(employer)/employer/apps/[id]/loading"
@@ -45,18 +41,9 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
 
 
     const router = useRouter()
-    const [currentStatus, setCurrentStatus] = useState("Reviewed")
     const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
     const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
 
-
-    const handleStatusChange = (newStatus: string) => {
-        setCurrentStatus(newStatus)
-        toast({
-            title: "Status updated",
-            description: `Application status changed to ${newStatus}`,
-        })
-    }
 
     const handleDownload = (name: string, url: string) => {
         const resumeUrl = baseURLPhoto(url);
@@ -92,7 +79,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
 
                     <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={getStatusVariant(user_details?.application_status ?? '')} className="h-6 px-3 text-xs">
-                            {currentStatus}
+                            {user_details?.application_status}
                         </Badge>
                         <p className="text-sm text-muted-foreground">Applied on {moment(user_details?.applied_at).format("MMM Do YY")}</p>
 
@@ -234,15 +221,15 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                         </TabsList>
                         <TabsContent value="resume" className="mt-4">
                             <Card>
-                                <CardContent>
+                                <CardContent className="p-0">
                                     <ResumePreview user={user_details} />
                                 </CardContent>
                             </Card>
                         </TabsContent>
                         <TabsContent value="cover-letter" className="mt-4">
                             <Card>
-                                <CardContent>
-                                    <div className="prose max-w-none dark:prose-invert">
+                                <CardContent className="py-4">
+                                    <div className="prose max-w-none dark:prose-invert whitespace-pre-line">
                                         {user_details?.cover_letter}
                                     </div>
                                 </CardContent>
@@ -261,22 +248,8 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                 <div>
                                     <div className="mb-2 flex items-center justify-between">
                                         <span className="text-sm font-medium">Current Status</span>
-                                        <Badge variant={getStatusVariant(currentStatus)}>{currentStatus}</Badge>
+                                        <Badge variant={getStatusVariant(user_details?.application_status ?? '')}>{user_details?.application_status}</Badge>
                                     </div>
-                                    <Select value={currentStatus} onValueChange={handleStatusChange}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Change status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Pending">Pending</SelectItem>
-                                            <SelectItem value="Reviewed">Reviewed</SelectItem>
-                                            <SelectItem value="Shortlisted">Shortlisted</SelectItem>
-                                            <SelectItem value="Interviewed">Interviewed</SelectItem>
-                                            <SelectItem value="Offered">Offered</SelectItem>
-                                            <SelectItem value="Hired">Hired</SelectItem>
-                                            <SelectItem value="Rejected">Rejected</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
 
                                 <div>
@@ -285,30 +258,6 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                         <span className="text-sm font-medium">{user_details?.match_percentage}%</span>
                                     </div>
                                     <Progress value={user_details?.match_percentage} className="h-2" />
-                                </div>
-
-                                <div className="pt-2">
-                                    <span className="text-sm font-medium">Quick Actions</span>
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full"
-                                            onClick={() => handleStatusChange("Shortlisted")}
-                                        >
-                                            <ThumbsUp className="mr-1 h-4 w-4" />
-                                            Shortlist
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full"
-                                            onClick={() => handleStatusChange("Rejected")}
-                                        >
-                                            <ThumbsDown className="mr-1 h-4 w-4" />
-                                            Reject
-                                        </Button>
-                                    </div>
                                 </div>
                             </div>
                         </CardContent>
@@ -321,6 +270,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                 onClose={() => setIsInterviewModalOpen(false)}
                 applicantName={`${user_details?.first_name} ${user_details?.last_name}`}
                 jobTitle={user_details?.job_title ?? ''}
+                id={user_details?.user_id ?? ''}
             />
 
             <SendMessageModal
@@ -328,6 +278,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                 onClose={() => setIsMessageModalOpen(false)}
                 applicantName={`${user_details?.first_name} ${user_details?.last_name}`}
                 applicantEmail={user_details?.email ?? ''}
+                id={user_details?.user_id ?? ''}
             />
         </>
     )

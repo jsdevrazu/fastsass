@@ -41,7 +41,7 @@ export default function AdminDashboard() {
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Briefcase className="h-5 w-5" />
-            <span>JobPortal Admin</span>
+            <span>FastSass Admin</span>
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-2">

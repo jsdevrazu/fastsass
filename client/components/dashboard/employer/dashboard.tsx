@@ -111,7 +111,7 @@ export default function EmployerDashboard() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/employer/apps/${row.original.job_id}`)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/employer/apps/${row.original?.user_id}`)}>View Details</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDownload(`${row.original.first_name?.toLowerCase()}_${row.original.last_name?.toLowerCase()}`, row.original.resume)}>Download Resume</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

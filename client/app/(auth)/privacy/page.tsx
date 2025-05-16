@@ -140,9 +140,9 @@ export default function PrivacyPolicyPage() {
             id="introduction"
             title="1. Introduction"
             content={`
-              <p>Welcome to JobPortal. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
+              <p>Welcome to FastSass. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
               
-              <p>This privacy policy aims to give you information on how JobPortal collects and processes your personal data through your use of this website, including any data you may provide through this website when you sign up for an account, post a job, apply for a job, or use any other services we offer.</p>
+              <p>This privacy policy aims to give you information on how FastSass collects and processes your personal data through your use of this website, including any data you may provide through this website when you sign up for an account, post a job, apply for a job, or use any other services we offer.</p>
               
               <p>It is important that you read this privacy policy together with any other privacy notice or fair processing notice we may provide on specific occasions when we are collecting or processing personal data about you so that you are fully aware of how and why we are using your data.</p>
             `}
@@ -319,7 +319,7 @@ export default function PrivacyPolicyPage() {
               <p>If you have any questions about this privacy policy or our privacy practices, please contact our data privacy manager:</p>
               
               <div class="mt-2">
-                <p>Email address: privacy@jobportal.com</p>
+                <p>Email address: privacy@FastSass.com</p>
                 <p>Postal address: 123 Job Street, Employment City, EC 10001, United States</p>
               </div>
               
@@ -341,7 +341,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} JobPortal. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} FastSass. All rights reserved.</p>
         </div>
       </div>
     </div>

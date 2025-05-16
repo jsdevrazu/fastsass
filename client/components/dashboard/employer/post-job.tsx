@@ -79,13 +79,6 @@ export default function PostJobPage({ job }: { job: JobsEntity }) {
   }
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [user])
-
-  useEffect(() => {
     setValue('title', job?.title)
     setValue('job_type', job?.job_type)
     setValue('location', job?.location)

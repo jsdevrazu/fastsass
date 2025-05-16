@@ -1,4 +1,5 @@
 import React from 'react'
+import { Badge } from './ui/badge';
 interface ResumePreviewProps {
   user: SingleApplicant | undefined
 }
@@ -7,13 +8,13 @@ export function ResumePreview({ user }: ResumePreviewProps) {
 
   const resume_preview = JSON.parse(user?.resume_summary?.replace(/```json|```/g, '').trim() ?? '') as ResumePreview | null
 
-
+  
   return (
-    <div className="border p-6 rounded-md bg-background">
+    <div className="border p-6 rounded-md">
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold">{resume_preview?.full_name}</h2>
-          <p className="text-muted-foreground">{user?.job_title}</p>
+          <p className="text-muted-foreground">{resume_preview?.title}</p>
           <p className="text-sm text-muted-foreground">{resume_preview?.location} • {resume_preview?.email} • {resume_preview?.phone}</p>
         </div>
 
@@ -31,17 +32,17 @@ export function ResumePreview({ user }: ResumePreviewProps) {
             resume_preview?.experience?.length !== 0 ? <div className="mb-4">
               {
                 resume_preview?.experience?.map((exprience) => (
-                  <div key={exprience.job_title}>
+                  <div key={exprience.company} className='mb-4 mt-4'>
                     <div className="flex justify-between items-baseline">
-                      <h4 className="font-medium">{exprience?.job_title}</h4>
+                      <h4 className="font-medium">{exprience?.job_title} - <Badge variant='default'>{exprience?.location}</Badge></h4>
                       <span className="text-sm text-muted-foreground">{exprience?.duration}</span>
                     </div>
-                    <p className="text-sm font-medium">TechCorp, San Francisco, CA</p>
-                    <ul className="list-disc text-sm ml-5 mt-1 space-y-1">
-                      <li>Led the development of a React-based dashboard that improved user engagement by 40%</li>
-                      <li>Implemented TypeScript across the codebase, reducing bugs by 25%</li>
-                      <li>Mentored junior developers and conducted code reviews</li>
-                      <li>Optimized application performance, reducing load times by 30%</li>
+                     <ul className="list-disc text-sm ml-5 mt-1 space-y-1">
+                      {
+                        exprience?.description?.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))
+                      }
                     </ul>
                   </div>
                 ))
@@ -62,6 +63,7 @@ export function ResumePreview({ user }: ResumePreviewProps) {
                       <span className="text-sm text-muted-foreground">{education?.year}</span>
                     </div>
                     <p className="text-sm">{education?.institution}</p>
+                    <p className="text-sm">GPA: {education?.gpa}</p>
                   </React.Fragment>
                 ))
               }

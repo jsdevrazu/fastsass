@@ -84,7 +84,7 @@ const navItemsEmployer = [
   },
 ]
 
-const SeekerDashboardSidebar = () => {
+const DashboardLayoutSidebar = () => {
   const pathname = usePathname()
   const { logout, user } = useAuthStore()
   const router = useRouter()
@@ -101,14 +101,14 @@ const SeekerDashboardSidebar = () => {
 
 
   const handleLogout = async () => {
-    router.push("/login")
+    await router.push("/login")
     logout()
     toast.success("Logout Successfully")
     await logout_api()
   }
 
   return (
-    <div className="hidden h-screen w-64 flex-col border-r bg-muted/40 md:flex">
+    <div className="flex flex-col h-screen">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Logo />
@@ -198,4 +198,4 @@ const SeekerDashboardSidebar = () => {
   )
 }
 
-export default SeekerDashboardSidebar
+export default DashboardLayoutSidebar

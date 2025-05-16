@@ -5,6 +5,7 @@ const ApiStrings = {
     REGISTER: "/auth/register",
     ME: "/auth/me",
     LOGOUT: "/auth/logout",
+    UPLOAD_RESUME: "/auth/upload-resume",
     REFRESH_TOKEN: "/auth/refresh",
     CHANGE_PASSWORD: "/auth/change-password",
     SET_PASSWORD: "/auth/set-password",
@@ -18,6 +19,7 @@ const ApiStrings = {
     RECOMANDED_JOBS: "/job/recommended",
     STATS: "/job/stats",
     SAVED_JOBS: "/job/saved-jobs",
+    COVER_LETTER: "/job/generate-cover-letter",
     POST_JOB: "/job/post",
     EMPLOYER_STATS: "/job/employer/stats",
     EMPLOYER_APPLICATION: "/job/employer/recent-applicants",
@@ -25,6 +27,7 @@ const ApiStrings = {
     GET_COMPANIES: "/job/companies",
     MY_JOB: "/job/my-jobs",
     CANDIDATES: "/job/candidates",
+    GET_JOB_APPLICATIONS: (id:string) => `/job/get-applications/${id}`,
     APPLICATIONS_EXPORT: "/job/applications/export",
     JOBS_EXPORT: "/job/my-jobs/export",
     SINGLE_JOB: (id:string) => `/job/${id}/detail`,
@@ -45,6 +48,8 @@ const ApiStrings = {
     GET_INVITES: '/employer/invites',
     SET_PASSWORD_EMPLOYER: '/employer/set-password',
     DELETE_INVITE: (id:string) => `/employer/invite/${id}`,
+    INTERVIEW_INVITE: (id:string) => `/employer/interview-invite/${id}`,
+    SEND_MESSAGE: (id:string) => `/employer/message/${id}`,
   };
   
   export default ApiStrings;

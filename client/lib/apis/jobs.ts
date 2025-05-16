@@ -55,6 +55,11 @@ export const get_seeker_dashboard_stats = async () => {
   return response.data;
 }
 
+export const generate_cover_letter = async (payload:GeneratePayload) => {
+  const response = await api.post<CoverLetterResponse>(ApiStrings.COVER_LETTER, payload);
+  return response.data;
+}
+
 export const get_saved_jobs = async () => {
   const response = await api.get<SavedJobResponse>(ApiStrings.SAVED_JOBS);
   return response.data;
@@ -166,3 +171,19 @@ export const get_candidates = async ({
   const response = await api.get<CandidatesResponse>(ApiStrings.CANDIDATES, { params });
   return response.data;
 }
+
+export const get_applications_based_on_job = async ({
+  page = 1,
+  limit = 10,
+  id = ''
+}): Promise<JobResponseApplications> => {
+
+  const params: Record<string, any> = {
+    page,
+    limit,
+  };
+
+  const response = await api.get<JobResponseApplications>(ApiStrings.GET_JOB_APPLICATIONS(id), { params });
+  return response.data;
+}
+

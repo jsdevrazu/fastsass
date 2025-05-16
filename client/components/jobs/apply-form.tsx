@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useAuthStore } from "@/store/store"
 import { useMutation } from "@tanstack/react-query"
-import { apply_job } from "@/lib/apis/jobs"
+import { apply_job, generate_cover_letter } from "@/lib/apis/jobs"
 import { toast } from "sonner"
 import { generateApplicationSchema } from "@/validation/job.validation"
 import { useMemo } from "react"
@@ -60,6 +60,16 @@ export default function JobApplicationPage({ job }: { job: JobsEntity }) {
             toast.error(error.message)
         }
     })
+    
+    const { mutate: mnFun, isPending: loading } = useMutation({
+        mutationFn: generate_cover_letter,
+        onSuccess: (data) => {
+            setValue("cover_letter", data?.cover_letter)
+        },
+        onError: (error) => {
+            toast.error(error.message)
+        }
+    })
 
 
     const onSubmit = (data: any) => {
@@ -101,6 +111,17 @@ export default function JobApplicationPage({ job }: { job: JobsEntity }) {
         mutate(payload)
     }
 
+    const handleGenerate = () =>{
+        const payload = {
+            full_name: `${user?.first_name} ${user?.first_name}`,
+            position: job?.title,
+            company_name: job?.company?.name,
+            skills: job?.skills,
+            experience: job?.experience_level ?? "mid"
+        }
+        mnFun(payload)
+    }
+
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -120,7 +141,12 @@ export default function JobApplicationPage({ job }: { job: JobsEntity }) {
                                 <div className="space-y-4">
                                     <h2 className="text-xl font-semibold">Additional Information</h2>
                                     <div className="space-y-2">
-                                        <Label htmlFor="cover-letter">Cover Letter</Label>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <Label htmlFor="cover-letter">Cover Letter</Label>
+                                            <Button type="button" disabled={loading} onClick={handleGenerate}>
+                                                {loading ? 'Generating...' : 'Generate Ai Covert Letter'}
+                                            </Button>
+                                        </div>
                                         <Textarea
                                             id="cover-letter"
                                             placeholder="Introduce yourself and explain why you're a good fit for this position..."

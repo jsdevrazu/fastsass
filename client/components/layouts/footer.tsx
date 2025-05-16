@@ -59,16 +59,16 @@ const Footer = () => {
             <div className="border-t">
                 <div className="app_container flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between md:py-8">
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} JobPortal. All rights reserved.
+                        © {new Date().getFullYear()} FastSass. All rights reserved.
                     </p>
                     <div className="flex gap-4">
-                        <Link href="#" className="text-sm text-muted-foreground hover:underline">
+                        <Link href="/terms" className="text-sm text-muted-foreground hover:underline">
                             Terms
                         </Link>
-                        <Link href="#" className="text-sm text-muted-foreground hover:underline">
+                        <Link href="/privacy" className="text-sm text-muted-foreground hover:underline">
                             Privacy
                         </Link>
-                        <Link href="#" className="text-sm text-muted-foreground hover:underline">
+                        <Link href="/cookies" className="text-sm text-muted-foreground hover:underline">
                             Cookies
                         </Link>
                     </div>

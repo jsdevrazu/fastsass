@@ -9,6 +9,5 @@ interface ProfileFormState {
     linkedin_profile: string,
     github_profile: string,
     summary: string,
-    resume: File | null,
     avatar: File | null
 }

@@ -4,6 +4,9 @@ interface ResumePreview {
   phone: string;
   location: string;
   linkedin: string;
+  github: string;
+  website: string;
+  title: string;
   github?: null;
   website?: null;
   education?: (EducationEntityResumePreview)[] | null;
@@ -15,10 +18,12 @@ interface EducationEntityResumePreview {
   degree: string;
   institution: string;
   year: string;
+  gpa: string
 }
 interface ExperienceEntityResumePreview {
   job_title: string;
   company: string;
   duration: string;
-  description?: string | null;
+  description?: string[] | null;
+  location?:string
 }

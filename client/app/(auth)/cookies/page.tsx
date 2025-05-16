@@ -323,7 +323,7 @@ export default function CookiesPolicyPage() {
             <h2 className="text-2xl font-bold mb-4">More Information</h2>
             <p className="text-muted-foreground mb-4">
               If you have any questions about our use of cookies or other technologies, please email us at
-              privacy@jobportal.com or contact us through the methods described in our Privacy Policy.
+              privacy@FastSass.com or contact us through the methods described in our Privacy Policy.
             </p>
           </section>
         </div>
@@ -341,7 +341,7 @@ export default function CookiesPolicyPage() {
         </div>
 
         <div className="text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} JobPortal. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} FastSass. All rights reserved.</p>
         </div>
       </div>
     </div>

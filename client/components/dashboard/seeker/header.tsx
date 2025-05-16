@@ -10,7 +10,7 @@ const SeekerDashboardHeader = () => {
     const { user } = useAuthStore()
 
     return (
-        <header className="flex h-14 justify-end items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+        <header className="flex h-14 justify-end items-center gap-4 border-b bg-muted/40 px-4 lg:h-[56px] lg:px-6">
             <Button variant="outline" size="icon" className="md:hidden">
                 <ChevronDown className="h-4 w-4" />
                 <span className="sr-only">Toggle Menu</span>

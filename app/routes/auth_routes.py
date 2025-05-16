@@ -20,6 +20,8 @@ import json
 from app.models.user_model import Skills, Certification, Experience, Education
 from app.models.companies_model import SocialMedia, CompanyCalture
 import os
+from app.routes.jobs_routes import client, extract_text_from_pdf, extract_structured_data_from_resume
+
 
 router = APIRouter()
 
@@ -485,7 +487,6 @@ async def update_current_user_profile(
     skills: Optional[str] = Form(None),
     email: Optional[EmailStr] = Form(None),
     avatar: Optional[UploadFile] = File(None),
-    resume: Optional[UploadFile] = File(None),
     user=Depends(get_current_user)
 ):
 
@@ -535,17 +536,6 @@ async def update_current_user_profile(
                 content = await avatar.read()
                 f.write(content)
             payload['avatar'] = file_location_avatar
-
-        if resume:
-            if user.get("resume"):
-                    if os.path.exists(user["resume"]):
-                        os.remove(user["resume"])
-                      
-            file_location_resume = f"{UPLOAD_RESUME_DIR}/{resume.filename}"
-            with open(file_location_resume, "wb") as f:
-                content = await resume.read()
-                f.write(content)
-            payload['resume'] = file_location_resume
         
         if not payload:
             return {"message": "No data provided for update"}
@@ -562,6 +552,38 @@ async def update_current_user_profile(
     except Exception as e:
         api_error(400, f"Invalid data: {e}")
     
+
+
+@router.post("/upload-resume")
+async def upload_resume_and_extract_data(
+    resume: UploadFile = File(...),
+    user=Depends(require_role("job_seeker"))
+):
+
+    old_resume_path = user.get("resume")
+    if old_resume_path and os.path.exists(old_resume_path):
+        os.remove(old_resume_path)
+
+    file_path = f"{UPLOAD_RESUME_DIR}/{resume.filename}"
+    with open(file_path, "wb") as f:
+        content = await resume.read()
+        f.write(content)
+
+    text = extract_text_from_pdf(file_path)
+    structured_data = extract_structured_data_from_resume(text)
+
+    db.users.update_one(
+        {"_id": ObjectId(user["_id"])},
+        {"$set": {"resume": file_path}}
+    )
+
+    return {
+        "message": "Resume processed successfully",
+        "resume_path": file_path,
+        "parsed_resume": structured_data
+    }
+
+   
 
 @router.delete("/me")
 async def delete_current_user_account(user=Depends(get_current_user)):
