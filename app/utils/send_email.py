@@ -17,5 +17,18 @@ def send_email(full_name: str, email: str, temp_id: int, params: dict):
     api_instance.send_transac_email(send_smtp_email)
 
 
+def send_email_with_subject(full_name: str, subject: str, email: str, temp_id: int, params: dict):
+        
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": email, "name": full_name }],
+            template_id=temp_id,
+            params=params,
+            subject=subject,
+            headers={"X-Mailin-custom": "custom_header"},
+    )
+
+    api_instance.send_transac_email(send_smtp_email)
+
+
 
         

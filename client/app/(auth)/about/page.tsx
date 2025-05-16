@@ -60,7 +60,7 @@ export default function AboutPage() {
                         <TimelineItem
                             year="2018"
                             title="The Beginning"
-                            description="JobPortal was founded with a simple idea: make job searching and hiring better for everyone. Our founders, frustrated with existing solutions, set out to create something different."
+                            description="FastSass was founded with a simple idea: make job searching and hiring better for everyone. Our founders, frustrated with existing solutions, set out to create something different."
                             isLeft={true}
                         />
                         <TimelineItem

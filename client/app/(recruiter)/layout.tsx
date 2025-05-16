@@ -1,6 +1,7 @@
 import Layout from "@/components/layouts/main-layout"
 
-export default function JobSeekerLayout({
+
+export default function RecruiterLayout({
   children,
 }: {
   children: React.ReactNode

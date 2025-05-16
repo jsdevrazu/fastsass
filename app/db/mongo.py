@@ -1,8 +1,10 @@
 from pymongo import MongoClient, errors
 from app.configs.settings import settings
+import certifi
+
 
 try:
-    client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000)
+    client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000, tlsCAFile=certifi.where())
     client.server_info() 
     db = client[settings.db_name]
     indexes = db.otps.index_information()
@@ -16,7 +18,8 @@ try:
     print("✅ DB Connected & TTL index created successfully")
 
 
-except errors.ServerSelectionTimeoutError:
+except errors.ServerSelectionTimeoutError as error:
+    print("App error", error)
     print("❌ MongoDB server not available. Check your connection or MongoDB URL.")
     db = None
 

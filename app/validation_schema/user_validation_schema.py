@@ -44,3 +44,17 @@ class SetPasswordInviteSchema(BaseModel):
     email: EmailStr
     token: str
     password: str
+
+class InterviewSchedule(BaseModel):
+    name: str
+    time: str
+    date: str
+    interview_type: str
+    notes:str
+    id:str
+    meet_link: str
+
+class MessageSendSchema(BaseModel):
+    subject: str
+    type: str
+    message: str

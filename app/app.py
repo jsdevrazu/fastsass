@@ -30,6 +30,7 @@ origins = [
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("uploads/logo", exist_ok=True)
 os.makedirs("uploads/resume", exist_ok=True)
+os.makedirs("uploads/profile", exist_ok=True)
 
 
 app = FastAPI()

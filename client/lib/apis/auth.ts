@@ -66,6 +66,15 @@ export const update_current_user = async (payload: FormData) => {
     return response.data;
   }
 
+export const upload_resume = async (payload: FormData) => {
+    const response = await api.post(ApiStrings.UPLOAD_RESUME, payload, {
+      headers: {
+        ...(payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {}),
+      }
+    });
+    return response.data;
+  }
+
 export const update_employer_information = async (payload: FormData) => {
     const response = await api.post(ApiStrings.COMPANY_PROFILE, payload, {
       headers: {

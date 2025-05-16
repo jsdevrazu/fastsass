@@ -3,12 +3,12 @@ from app.utils.error_handler import api_error
 from app.auth.jwt_handler import require_role, get_current_user, hash_password
 from app.db.mongo import db
 from bson.objectid import ObjectId
-from app.validation_schema.user_validation_schema import TeamInviteRequestSchema, SetPasswordInviteSchema
+from app.validation_schema.user_validation_schema import TeamInviteRequestSchema, SetPasswordInviteSchema, InterviewSchedule, MessageSendSchema
 from uuid import uuid4
 from datetime import datetime, timezone
 from app.configs.settings import settings
-from app.utils.send_email import send_email
-
+from app.utils.send_email import send_email, send_email_with_subject
+from bson import ObjectId
 
 router = APIRouter()
 
@@ -23,6 +23,10 @@ def invite_team_member(
     existing_invite = db.team_invites.find_one({"email": body.email, "status": "pending"})
     if existing_invite:
         api_error(400, "User already invited.")
+
+    existing_user = db.users.find_one({"email": body.email })
+    if existing_user:
+        api_error(400, "User already exist another role.")
 
     invite_token = str(uuid4())
 
@@ -109,3 +113,56 @@ def delete_invite(invite_id: str, user=Depends(require_role("employer"))):
 
     db.team_invites.delete_one({"_id": ObjectId(invite_id)})
     return {"message": "Invite deleted successfully."}
+
+@router.post('/interview-invite/{user_id}')
+def interview_invite(user_id:str, body:InterviewSchedule, user=Depends(require_role('employer'))):
+
+    user = db.users.find_one({ "_id": ObjectId(user_id) })
+    if not user:
+        api_error(404, "User not found")
+    
+    db.applications.find_one_and_update(
+        {"applicate": ObjectId(user_id)},
+        {"$set": {"application_status": "Interviewed"}}
+    )
+    send_email(body.name, user.get('email'), 7, {"name": body.name, "date": body.date, "time": body.time, "notes": body.notes, "interview_type": body.interview_type, "meet_link": body.meet_link})
+
+    return {
+        "message":"Invite Send Successfully"
+    }
+
+
+@router.post('/interview-invite/{user_id}')
+def interview_invite(user_id:str, body:InterviewSchedule, user=Depends(require_role('employer'))):
+
+    user = db.users.find_one({ "_id": ObjectId(user_id) })
+    if not user:
+        api_error(404, "User not found")
+    
+    db.applications.find_one_and_update(
+        {"applicate": ObjectId(user_id)},
+        {"$set": {"application_status": "Interviewed"}}
+    )
+    send_email(body.name, user.get('email'), 7, {"name": body.name, "date": body.date, "time": body.time, "notes": body.notes, "interview_type": body.interview_type, "meet_link": body.meet_link})
+
+    return {
+        "message":"Invite Send Successfully"
+    }
+
+@router.post('/message/{user_id}')
+def message_send(user_id:str, body:MessageSendSchema, user=Depends(require_role('employer'))):
+
+    user = db.users.find_one({ "_id": ObjectId(user_id) })
+    if not user:
+        api_error(404, "User not found")
+    
+    if body.type == 'Rejected':
+        db.applications.find_one_and_update(
+            {"applicate": ObjectId(user_id)},
+            {"$set": {"application_status": "Rejected"}}
+    )
+    send_email_with_subject(f"{user.get("first_name")} {user.get("last_name")}", body.subject, user.get('email'), 8, {"name": f"{user.get("first_name")} {user.get("last_name")}", "subject": body.subject, "message": body.message})
+
+    return {
+        "message":"Message Send Successfully"
+    }

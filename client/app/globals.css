@@ -4,6 +4,9 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 ::-webkit-scrollbar {
@@ -99,7 +102,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 222 89% 55%;
+    --primary: 251 86% 59%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 215 25% 92%;
@@ -108,7 +111,7 @@ body {
     --muted: 215 25% 92%;
     --muted-foreground: 215 25% 40%;
 
-    --accent: 222 89% 95%;
+    --accent: 251 86% 95%;
     --accent-foreground: 222 89% 35%;
 
     --destructive: 0 84% 60%;
@@ -131,7 +134,7 @@ body {
     --popover: 222 47% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+   --primary: 251 86% 65%;
     --primary-foreground: 222 47% 10%;
 
     --secondary: 217 33% 20%;
@@ -140,7 +143,7 @@ body {
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 70%;
 
-    --accent: 217 91% 25%;
+     --accent: 251 86% 25%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 63% 40%;

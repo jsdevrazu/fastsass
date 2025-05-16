@@ -47,21 +47,21 @@ export default function ContactPage() {
                         icon={<MessageSquare className="h-8 w-8 text-primary" />}
                         title="General Inquiries"
                         description="For general questions about our platform and services."
-                        contact="info@jobportal.com"
+                        contact="info@FastSass.com"
                         contactType="email"
                     />
                     <ContactCard
                         icon={<HelpCircle className="h-8 w-8 text-primary" />}
                         title="Customer Support"
                         description="Need help with your account or have technical issues?"
-                        contact="support@jobportal.com"
+                        contact="support@FastSass.com"
                         contactType="email"
                     />
                     <ContactCard
                         icon={<Building className="h-8 w-8 text-primary" />}
                         title="Business Development"
                         description="For partnership opportunities and business inquiries."
-                        contact="partnerships@jobportal.com"
+                        contact="partnerships@FastSass.com"
                         contactType="email"
                     />
                 </div>
@@ -111,7 +111,7 @@ export default function ContactPage() {
                             <ContactInfo
                                 icon={<Mail className="h-5 w-5 text-muted-foreground" />}
                                 label="Email"
-                                value="contact@jobportal.com"
+                                value="contact@FastSass.com"
                             />
                             <ContactInfo
                                 icon={<Clock className="h-5 w-5 text-muted-foreground" />}

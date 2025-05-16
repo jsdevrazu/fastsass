@@ -14,25 +14,40 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
+import { useMutation } from "@tanstack/react-query"
+import { send_message } from "@/lib/apis/employer"
 
 interface SendMessageModalProps {
   isOpen: boolean
   onClose: () => void
   applicantName: string
   applicantEmail: string
+  id:string
 }
 
-export function SendMessageModal({ isOpen, onClose, applicantName, applicantEmail }: SendMessageModalProps) {
+export function SendMessageModal({ isOpen, id, onClose, applicantName, applicantEmail }: SendMessageModalProps) {
   const [subject, setSubject] = useState("")
   const [message, setMessage] = useState("")
   const [template, setTemplate] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: send_message,
+    onSuccess: () => {
+     toast.success("Message sent",{
+        description: `Your message has been sent to ${applicantName}`,
+      })
+      resetForm()
+      onClose()
+    },
+    onError: (error) =>{
+      toast.error(error.message)
+    }
+  })
 
   const handleTemplateChange = (value: string) => {
     setTemplate(value)
 
-    // Set subject and message based on template
     switch (value) {
       case "interview-request":
         setSubject("Interview Request: Next Steps for Your Application")
@@ -59,26 +74,20 @@ export function SendMessageModal({ isOpen, onClose, applicantName, applicantEmai
 
   const handleSubmit = () => {
     if (!subject || !message) {
-      toast({
-        title: "Missing information",
+      toast.error("Missing information",{
         description: "Please enter both subject and message",
-        variant: "destructive",
       })
       return
     }
+    const payload = {
+      subject,
+      message,
+      type: template === 'rejection' ? 'Rejected': template,
+      id
+    }
+    mutate(payload)
 
-    setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      toast({
-        title: "Message sent",
-        description: `Your message has been sent to ${applicantName}`,
-      })
-      resetForm()
-      onClose()
-    }, 1000)
+  
   }
 
   const resetForm = () => {
@@ -135,11 +144,11 @@ export function SendMessageModal({ isOpen, onClose, applicantName, applicantEmai
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Send Message"}
+          <Button onClick={handleSubmit} disabled={isPending}>
+            {isPending ? "Sending..." : "Send Message"}
           </Button>
         </DialogFooter>
       </DialogContent>

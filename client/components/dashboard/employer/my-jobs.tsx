@@ -110,7 +110,7 @@ const MyJobs = () => {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => router.push(`/jobs/${row.original.slug}`)}>View Details</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push(`/employer/edit-job/${row.original.slug}`)}>Edit Job</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/employer/apps/${row.original._id}`)}>View Applications</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/employer/applications/${row.original._id}`)}>View Applications</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleDelete(row.original._id)} className="text-destructive">Delete Job</DropdownMenuItem>
                     </DropdownMenuContent>

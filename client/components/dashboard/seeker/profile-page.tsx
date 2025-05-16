@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import {
     FileText,
     Globe,
+    Loader2,
     MapPin,
     Plus,
     Upload,
@@ -17,7 +18,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AddExperienceModal } from "@/components/modals/add-experience-modal"
 import { AddCertificationModal } from "@/components/modals/add-certification-modal"
 import { ExperienceCard } from "@/components/experience-card"
@@ -25,10 +25,12 @@ import { CertificationCard } from "@/components/certification-card"
 import { useAuthStore } from "@/store/store"
 import { baseURLPhoto } from "@/lib/axios"
 import { useMutation } from "@tanstack/react-query"
-import { update_current_user } from "@/lib/apis/auth"
+import { update_current_user, upload_resume } from "@/lib/apis/auth"
 import { toast } from "sonner"
 import { SkillBadge } from "@/components/skill-badge"
 import { AddSkillModal } from "@/components/modals/add-skill-modal"
+import { OverlayLock } from "@/components/overlay-lock"
+import { mapResumeEducationToEntity, mapResumeExperienceToEntity, mapResumeSkillsToEntity } from "@/lib/utils"
 
 
 const initalState = {
@@ -66,7 +68,6 @@ export default function JobSeekerProfilePage() {
         linkedin_profile: user?.linkedin_profile ?? '',
         github_profile: user?.github_profile ?? '',
         summary: user?.summary ?? '',
-        resume: null,
         avatar: null
     })
 
@@ -74,6 +75,60 @@ export default function JobSeekerProfilePage() {
         mutationFn: update_current_user,
         onSuccess: () => {
             toast.success("Profile updated")
+        },
+        onError: (error) => {
+            toast.error(error.message)
+        }
+    })
+
+    const { isPending: uploading, mutate: mnFun } = useMutation({
+        mutationFn: upload_resume,
+        onSuccess: (data) => {
+            const cleaned = data?.parsed_resume?.replace(/```json|```/g, '').trim() ?? '';
+            const resume_preview: ResumePreview = JSON.parse(cleaned);
+
+            setFormState((prev) => ({
+                ...prev,
+                first_name: resume_preview.full_name?.split(' ')[0] ?? prev.first_name,
+                last_name: resume_preview.full_name?.split(' ')[1] ?? prev.last_name,
+                email: resume_preview.email ?? prev.email,
+                phone_number: resume_preview.phone ?? prev.phone_number,
+                location: resume_preview.location ?? prev.location,
+                summary: resume_preview.summary ?? prev.summary,
+                github_profile: resume_preview.github ?? prev.github_profile,
+                linkedin_profile: resume_preview.linkedin ?? prev.linkedin_profile,
+                website: resume_preview.website ?? prev.website,
+                head_line_title: resume_preview?.title ?? prev.head_line_title
+            }));
+
+
+            const resumeExperiences: ExperienceEntityResumePreview[] = resume_preview.experience ?? [];
+            const resumeSkills: string[] = resume_preview.skills ?? [];
+            const resumeEducation: EducationEntityResumePreview | undefined | null = resume_preview.education && resume_preview.education[0];
+            const formattedExperiences = resumeExperiences.map(mapResumeExperienceToEntity);
+            const formattedSkills = resumeSkills.map(mapResumeSkillsToEntity);
+            const formattedEducation = mapResumeEducationToEntity(resumeEducation)
+            console.log(resumeEducation, "resume_preview.education", formattedEducation)
+
+
+            setExperiences((prev) => [
+                ...prev,
+                ...formattedExperiences
+            ]);
+            setSkills((prev) => [
+                ...prev,
+                ...formattedSkills
+            ]);
+            
+            setEducation({
+                degree_name: formattedEducation.degree_name,
+                institution: formattedEducation.institution,
+                start_date: '',
+                end_date: ''
+            });
+
+
+            toast.success("Profile updated from resume!");
         },
         onError: (error) => {
             toast.error(error.message)
@@ -97,7 +152,7 @@ export default function JobSeekerProfilePage() {
         const { name, value } = target;
         setEducation(prev => ({
             ...prev,
-            [name]:  value
+            [name]: value
         }));
     };
 
@@ -119,10 +174,6 @@ export default function JobSeekerProfilePage() {
         formData.append("certifications", JSON.stringify(certifications))
         formData.append("skills", JSON.stringify(skills))
         formData.append("summary", formState.summary)
-
-        if (formState.resume instanceof File) {
-            formData.append("resume", formState.resume)
-        }
 
         if (formState.avatar instanceof File) {
             formData.append("avatar", formState.avatar)
@@ -192,6 +243,23 @@ export default function JobSeekerProfilePage() {
         setSkills(skills.filter((skill) => skill.id !== id))
     }
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("File size exceeds 5MB limit.")
+            return
+        }
+
+        const form = new FormData()
+        form.append("resume", file)
+        mnFun(form)
+
+    }
+
+
 
     useEffect(() => {
         setFormState({
@@ -205,7 +273,6 @@ export default function JobSeekerProfilePage() {
             linkedin_profile: user?.linkedin_profile ?? '',
             github_profile: user?.github_profile ?? '',
             summary: user?.summary ?? '',
-            resume: null,
             avatar: null
         })
         setSkills(user?.skills ?? [])
@@ -215,9 +282,9 @@ export default function JobSeekerProfilePage() {
     }, [user])
 
     return (
-        <div className="flex min-h-screen">
-
-            <main className="flex-1 overflow-auto">
+        <>
+            <OverlayLock visible={uploading} />
+            <main>
                 <div className="space-y-6">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">My Profile</h2>
@@ -277,38 +344,44 @@ export default function JobSeekerProfilePage() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Email</Label>
-                                            <Input id="email" type="email" value={formState.email} name="email" onChange={handleChange} />
-                                        </div>
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="email">Email</Label>
+                                                <Input id="email" type="email" value={formState.email} name="email" onChange={handleChange} />
+                                            </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phone">Phone number</Label>
-                                            <Input id="phone" type="tel" value={formState.phone_number} name="phone_number" onChange={handleChange} />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="location">Location</Label>
-                                            <div className="flex">
-                                                <div className="flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-muted-foreground">
-                                                    <MapPin className="h-4 w-4" />
-                                                </div>
-                                                <Input id="location" className="rounded-l-none" value={formState.location} name="location" onChange={handleChange} />
+                                            <div className="space-y-2">
+                                                <Label htmlFor="phone">Phone number</Label>
+                                                <Input id="phone" type="tel" value={formState.phone_number} name="phone_number" onChange={handleChange} />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="headline">Professional Headline</Label>
-                                            <Input
-                                                id="headline"
-                                                name='head_line_title'
-                                                value={formState.head_line_title}
-                                                onChange={handleChange}
-                                            />
-                                            <p className="text-xs text-muted-foreground">
-                                                A short headline that summarizes your professional identity
-                                            </p>
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="location">Location</Label>
+                                                <div className="flex">
+                                                    <div className="flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-muted-foreground">
+                                                        <MapPin className="h-4 w-4" />
+                                                    </div>
+                                                    <Input id="location" className="rounded-l-none" classNameRoot="flex-1" value={formState.location} name="location" onChange={handleChange} />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="headline">Professional Headline</Label>
+                                                <Input
+                                                    id="headline"
+                                                    name='head_line_title'
+                                                    value={formState.head_line_title}
+                                                    onChange={handleChange}
+                                                />
+                                                <p className="text-xs text-muted-foreground">
+                                                    A short headline that summarizes your professional identity
+                                                </p>
+                                            </div>
                                         </div>
+
+
 
                                         <div className="space-y-2">
                                             <Label htmlFor="summary">Professional Summary</Label>
@@ -362,9 +435,9 @@ export default function JobSeekerProfilePage() {
                                                 </Button>
                                             </div>
                                         ) : (
-                                            experiences?.map((experience) => (
+                                            experiences?.map((experience, index) => (
                                                 <ExperienceCard
-                                                    key={experience.company_name}
+                                                    key={index}
                                                     experience={experience}
                                                     onEdit={handleEditExperience}
                                                     onDelete={handleDeleteExperience}
@@ -435,7 +508,7 @@ export default function JobSeekerProfilePage() {
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="degree">Degree/Certificate</Label>
-                                        <Input id="degree" name='degree_name' value={education.degree_name} onChange={handleEducationChange}  />
+                                        <Input id="degree" name='degree_name' value={education.degree_name} onChange={handleEducationChange} />
                                     </div>
 
                                     <div className="space-y-2">
@@ -446,11 +519,11 @@ export default function JobSeekerProfilePage() {
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="edu-start-date">Start Date</Label>
-                                            <Input id="edu-start-date" name='start_date' value={education.start_date} onChange={handleEducationChange}  type="month" />
+                                            <Input id="edu-start-date" name='start_date' value={education.start_date} onChange={handleEducationChange} type="month" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="edu-end-date">End Date</Label>
-                                            <Input id="edu-end-date" type="month" name='end_date' value={education.end_date} onChange={handleEducationChange}  />
+                                            <Input id="edu-end-date" type="month" name='end_date' value={education.end_date} onChange={handleEducationChange} />
                                         </div>
                                     </div>
 
@@ -511,41 +584,54 @@ export default function JobSeekerProfilePage() {
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
                                         <Label>Resume/CV</Label>
-                                        <div className="flex items-center gap-4">
-                                            {
-                                                user?.resume && <div className="rounded-md border p-2 flex items-center gap-2">
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                            {user?.resume && (
+                                                <div className="rounded-md border p-2 px-4 flex items-center gap-2 bg-muted">
                                                     <FileText className="h-4 w-4 text-muted-foreground" />
-                                                    <span className="text-sm">{user?.resume}</span>
+                                                    <span className="text-sm truncate max-w-[200px]">{user?.resume}</span>
                                                 </div>
-                                            }
-                                            <Button className="relative" variant="outline" size="sm" type="button">
-                                                <Label htmlFor="resume">
+                                            )}
+
+                                            <div className="relative">
+                                                <Input
+                                                    id="resume"
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    className="absolute inset-0 opacity-0 z-10 cursor-pointer"
+                                                    name="resume"
+                                                    onChange={handleFileUpload}
+                                                    disabled={uploading}
+                                                />
+                                                <Button variant="outline" size="sm">
                                                     {user?.resume ? "Update Resume" : "Upload Resume"}
-                                                </Label>
-                                                <Input id="resume" accept="application/pdf" type="file" className="w-full h-full absolute top-0 hidden" name='resume' onChange={handleChange} />
-                                            </Button>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">Upload your resume in PDF format (max 5MB)</p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="portfolio">Portfolio/Website</Label>
-                                        <div className="flex">
-                                            <div className="flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-muted-foreground">
-                                                <Globe className="h-4 w-4" />
+                                                </Button>
                                             </div>
-                                            <Input id="portfolio" className="rounded-l-none" name='website' value={formState.website} onChange={handleChange} />
                                         </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Upload your resume in PDF format (max 5MB)
+                                        </p>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                                        <Input id="linkedin" value={formState.linkedin_profile} name="linkedin_profile" onChange={handleChange} />
-                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-3">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="portfolio">Portfolio/Website</Label>
+                                            <div className="flex">
+                                                <div className="flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-muted-foreground">
+                                                    <Globe className="h-4 w-4" />
+                                                </div>
+                                                <Input id="portfolio" classNameRoot="flex-1" className="rounded-l-none" name='website' value={formState.website} onChange={handleChange} />
+                                            </div>
+                                        </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="github">GitHub Profile</Label>
-                                        <Input id="github" value={formState.github_profile} name="github_profile" onChange={handleChange} />
+                                        <div className="space-y-2">
+                                            <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                                            <Input id="linkedin" value={formState.linkedin_profile} name="linkedin_profile" onChange={handleChange} />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="github">GitHub Profile</Label>
+                                            <Input id="github" value={formState.github_profile} name="github_profile" onChange={handleChange} />
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -583,6 +669,6 @@ export default function JobSeekerProfilePage() {
                 onSave={handleAddSkill}
                 editingSkill={editingSkill}
             />
-        </div>
+        </>
     )
 }
