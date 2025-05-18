@@ -20,6 +20,7 @@ from PyPDF2 import PdfReader
 from openai import OpenAI
 from app.configs.settings import settings
 from app.constant.index import AI_MODEL
+from app.socket import emit_event
 
 
 client = OpenAI(
@@ -386,6 +387,8 @@ async def apply_job(
 
         db.applications.insert_one(payload)
 
+        await emit_event(str(job['post_by']), 'NEW_APPLICATION', {"application": 1})
+
         return {
             "message": "Job Apply Successfully"
         }
@@ -527,7 +530,34 @@ def get_recommended_jobs(
     user=Depends(get_current_user)
 ):
     skip = (page - 1) * limit
+    preferences = user.get("preferences_feature", {})
+    job_type = preferences.get("job_type")
+    work_location = preferences.get("work_location")
+    salary_range = preferences.get("salary_range")
+    experience_level = preferences.get("experience_level")
+    preferred_industry = preferences.get("preferred_industry")
 
+    filters = {}
+
+    if job_type:
+        filters["job_type"] = job_type
+
+    if work_location:
+        filters["location"] = work_location
+
+    if experience_level:
+        filters["experience_level"] = experience_level
+
+    if preferred_industry:
+        filters["industry"] = preferred_industry
+
+    if salary_range:
+        try:
+            min_salary, max_salary = map(int, salary_range.split("-"))
+            filters["salary"] = {"$gte": min_salary, "$lte": max_salary}
+        except ValueError:
+            pass 
+        
     applied_jobs = list(db.applications.find(
             {"applicate": ObjectId(user['_id'])},
             {"job_id": 1}
@@ -535,24 +565,12 @@ def get_recommended_jobs(
     
     applied_job_ids = [item["job_id"] for item in applied_jobs]
 
-    recent_job = db.jobs.find_one(
-            {"_id": applied_job_ids[-1]} if applied_job_ids else {},
-            {"job_type": 1, "location": 1}
-        )
+    filters["_id"] = {"$nin": applied_job_ids}
 
-    filters = {}
-    if recent_job:
-            if recent_job.get("job_type"):
-                filters["job_type"] = recent_job["job_type"]
-            if recent_job.get("location"):
-                filters["location"] = recent_job["location"]
 
     pipeline = [
             {
-                "$match": {
-                    **filters,
-                    "_id": {"$nin": applied_job_ids}
-                }
+                "$match": filters
             },
             {
                 "$lookup": {
@@ -735,7 +753,7 @@ def update_job_status(application_id: str, body: ApplicationStatus):
     }
 
 @router.get('/update-view/{slug}')
-def update_job_view(slug:str):
+async def update_job_view(slug:str):
 
     job = db.jobs.find_one_and_update(
         {"slug": slug},
@@ -744,7 +762,8 @@ def update_job_view(slug:str):
 
     if not job:
         api_error(404, "Jon not found")
-
+    
+    await emit_event(str(job['post_by']), "JOB_VIEW_UPDATE", {"job_view": 1})
 
     return {
         "message": "View Update"
@@ -1414,6 +1433,7 @@ def get_spefic_job_applications(
                 "application_status": 1,
                 "cover_letter": 1,
                 "experience": 1,
+                "questions_answer": 1,
                 "summary": "$applicant.summary",
                 "applied_at": "$created_at",
                 "job_skills": "$job.skills",

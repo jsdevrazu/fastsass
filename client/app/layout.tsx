@@ -7,6 +7,7 @@ import { GlobalLoader } from "@/components/global-loader"
 import { Lato } from 'next/font/google'
 import { ThemeProvider } from "@/components/theme-provider"
 import 'react-quill-new/dist/quill.snow.css';
+import SocketsEvents from "@/components/sockets-events"
 
 
 
@@ -41,6 +42,7 @@ export default async function RootLayout({
           <Toaster />
           <GlobalLoader />
           <ReactQueryProvider>
+          <SocketsEvents />
             {children}
           </ReactQueryProvider>
         </ThemeProvider>

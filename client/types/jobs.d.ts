@@ -79,6 +79,10 @@ interface SingleApplicant {
   applied_at: string;
   match_percentage: number
   resume_summary: string
+  questions_answer:{
+    question: string
+    answer: string
+  }[]
 }
 
 interface Experience {
@@ -151,10 +155,10 @@ interface SavedJobs {
 
 
 interface EmployerStats {
-  active_jobs: 1,
-  total_application: 1,
-  interviewed: 0,
-  jobs_view: 0
+  active_jobs: number,
+  total_application: number,
+  interviewed: number,
+  jobs_view: number
 }
 
 interface RecentApplication {

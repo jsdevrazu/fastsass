@@ -74,7 +74,7 @@ async def google_callback(request: Request):
     picture = user_info.get("picture")
 
     existing_user = db.users.find_one({"email": email})
-    token = fetch_token(name, email)
+    token = None
     company_id = None
     if "employer" in role:
            company = db.companies.insert_one({
@@ -88,12 +88,14 @@ async def google_callback(request: Request):
             "avatar": picture,
             "is_verified": True,
             "auth_provider": "google",
-            "refresh_token": token['refresh_token'],
             "role": role,
             "company_id": company_id
         }
 
-        db.users.insert_one(user)
+        new_user = db.users.insert_one(user)
+        user_id = str(new_user.inserted_id)
+        token = fetch_token(user_id, role)
+        db.users.update_one({"_id": new_user.inserted_id}, {"$set": {"refresh_token": token["refresh_token"]}})
 
     response = RedirectResponse(url=f"{settings.client_url}/api/auth/callback?token={token['access_token']}")
     return response
@@ -118,19 +120,21 @@ async def github_callback(request: Request):
             })
            company_id = company.inserted_id
 
-    token_data = fetch_token(username, email or f"{username}@github.com")
+    token_data = None
     if not existing_user:
         new_user = {
             "first_name": username,
-            "email": f"{username}@github.com",
+            "email": email or f"{username}@github.com",
             "avatar": avatar_url,
             "auth_provider": "github",
             "is_verified": True,
-            "refresh_token": token_data['refresh_token'],
             "role": role,
             "company_id": company_id
         }
-        db.users.insert_one(new_user)
+        user = db.users.insert_one(new_user)
+        user_id = str(user.inserted_id)
+        token_data = fetch_token(user_id, role)
+        db.users.update_one({"_id": new_user.inserted_id}, {"$set": {"refresh_token": token["refresh_token"]}})
 
     return RedirectResponse(f"{settings.client_url}/api/auth/callback?token={token_data['access_token']}")
 
@@ -157,9 +161,7 @@ async def register(
             f.write(content)
 
         h_password = hash_password(password)
-        token = fetch_token(full_name, modi_email)
-        access_token = token['access_token']
-        refresh_token = token['refresh_token']
+        
         
         company_id = None
         if "employer" in role:
@@ -176,16 +178,17 @@ async def register(
             "avatar": f"{file_location}",
             "role": role,
             "is_verified": False,
-            "verify_token": token['access_token'],
-            "refresh_token": refresh_token,
             "company_id": company_id,
             "auth_provider": "email"
         }
 
-        db.users.insert_one(payload)
+        new_user = db.users.insert_one(payload)
+        token = fetch_token(str(new_user.inserted_id), role)
 
-        verify_link = f"http://localhost:8000/api/v1/auth/verify-email?token={access_token}"
+        verify_link = f"http://localhost:8000/api/v1/auth/verify-email?token={token['access_token']}"
         send_email(full_name, modi_email, 2, {"name": full_name, "verify_link": verify_link})
+        db.users.update_one({"_id": new_user.inserted_id}, {"$set": {"refresh_token": token["refresh_token"], "verify_token": token['access_token']}})
+
         
         return {
             'message': "Signup successful. Please verify your email",
@@ -200,15 +203,15 @@ async def register(
 async def verify_email(token: str):
     try:
         payload = decoded_token(token)
-        email = payload.get("email")
-        user =  db.users.find_one({"email": email})
+        user_id = payload.get("_id")
+        user =  db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             api_error(404, "User not found")
         if user.get("is_verified"):
             return {"msg": "Already verified"}
 
         db.users.update_one(
-            {"email": email},
+            {"_id": ObjectId(user_id)},
             {"$set": {"is_verified": True}, "$unset": {"verify_token": ""}}
         )
         response = RedirectResponse(url=f"{settings.client_url}/login")
@@ -239,8 +242,7 @@ async def login(res: Response, body:LoginSchema):
         if db_user['role'] == 'employer':
             db_user['company_id'] = str(db_user['company_id'])
         
-        full_name = f"{db_user.get('first_name', '')} {db_user.get('last_name', '')}"
-        token = fetch_token(full_name, db_user['email'])
+        token = fetch_token(str(db_user['_id']), db_user['role'])
         access_token = token['access_token']
         refresh_token = token['refresh_token']
 
@@ -249,7 +251,6 @@ async def login(res: Response, body:LoginSchema):
             {"$set": {"refresh_token": refresh_token}}
         )
 
-        
         set_cookie(res, access_token, refresh_token)
         return {
             'message': "Login Successfully",
@@ -356,8 +357,7 @@ def refresh_token(req: Request, res: Response,  body: TokenSchema):
     if body_token != user['refresh_token']:
         api_error(400, "Refresh token not match")
 
-    full_name = f"{user['first_name']} {user['last_name']}"
-    token = fetch_token(full_name, user['email'])
+    token = fetch_token(str(user.get("_id", "")), user['role'])
     access_token = token['access_token']
     refresh_token = token['refresh_token']
 

@@ -8,6 +8,7 @@ from typing import Optional
 from app.utils.error_handler import api_error
 from jwt.exceptions import PyJWTError
 from app.db.mongo import db
+from bson import ObjectId
 
 pwd_context = CryptContext(schemes='bcrypt', deprecated = 'auto')
 oauth2_schema = OAuth2PasswordBearer(tokenUrl='token')
@@ -56,10 +57,10 @@ async def get_current_user(req: Request):
         api_error(401, "Login required pls!")
     try:
         payload = decoded_token(token)
-        email = payload.get('email') or payload.get('sub')
-        if not email:
+        user_id = payload.get('_id') or payload.get('sub')
+        if not user_id:
             api_error(401, 'Invalid Token')
-        user = db.users.find_one({"email": email})
+        user = db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             api_error(404, 'User not found')
         
@@ -81,7 +82,7 @@ def optional_get_current_user(request: Request) -> Optional[dict]:
         if not token:
             return None
         decoded = decoded_token(token)
-        user = db.users.find_one({"email": decoded["email"]})
+        user = db.users.find_one({"_id": ObjectId(decoded["_id"])})
         if user:
             user["_id"] = str(user["_id"])
             return user

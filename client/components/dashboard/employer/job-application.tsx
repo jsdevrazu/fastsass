@@ -55,6 +55,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
         link.remove();
     };
 
+    console.log(user_details?.questions_answer)
     if (isLoading) return <ApplicationDetailsLoading />
 
     return (
@@ -209,6 +210,20 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                             ))}
                                         </div>
                                     </div>
+
+                                    {
+                                        user_details?.questions_answer?.length !== 0 && <div className="mt-4">
+                                            <h3 className="text-xl">Questions Answer</h3>
+                                            {
+                                                user_details?.questions_answer?.map((item) => (
+                                                    <div className="mt-2">
+                                                        <p className="text-sm font-medium text-muted-foreground">{item.question}</p>
+                                                        <p className="text-sm font-medium">Answer: {item.answer}</p>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </CardContent>

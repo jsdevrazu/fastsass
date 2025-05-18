@@ -3,14 +3,14 @@ from app.auth.jwt_handler import create_token
 from datetime import timedelta
 import re
 
-def fetch_token(full_name: str, email: str):
+def fetch_token(id: str, role: str):
     access_token = create_token({
-            "full_name": full_name,
-            "email": email.lower(),
+            "_id": id,
+            "role": role
     })
     refresh_token = create_token({
-            "full_name": full_name,
-            "email": email.lower(),
+            "_id": id,
+             "role": role
     }, 
         expire_date= timedelta(days=7)
     )

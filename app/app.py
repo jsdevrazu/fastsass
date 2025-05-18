@@ -18,6 +18,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from app.socket import socket_app
 
 
 origins = [
@@ -34,6 +35,7 @@ os.makedirs("uploads/profile", exist_ok=True)
 
 
 app = FastAPI()
+app.mount("/socket.io", socket_app)
 
 
 app.add_middleware(

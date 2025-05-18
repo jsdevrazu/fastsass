@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthStore } from "@/store/store"
 import { baseURLPhoto } from "@/lib/axios"
+import { NotificationPopover } from "@/components/notification-popover"
 
 const SeekerDashboardHeader = () => {
 
@@ -16,6 +17,7 @@ const SeekerDashboardHeader = () => {
                 <span className="sr-only">Toggle Menu</span>
             </Button>
             <div className="flex justify-end items-center gap-2">
+                <NotificationPopover />
                 <Avatar>
                     <AvatarImage className=" object-cover" src={`${baseURLPhoto(user?.avatar ?? '')}?height=32&width=32`} alt="User" />
                     <AvatarFallback>

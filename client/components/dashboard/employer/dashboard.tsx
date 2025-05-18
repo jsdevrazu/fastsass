@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -15,7 +15,6 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +36,7 @@ export default function EmployerDashboard() {
 
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
+    const [shouldFetch, setShouldFetch] = useState(false);
     const router = useRouter()
 
     const queries = useQueries({
@@ -44,14 +44,17 @@ export default function EmployerDashboard() {
             {
                 queryKey: ["employer_stats"],
                 queryFn: get_employer_stats,
+                enabled: shouldFetch,
             },
             {
-                queryKey: ["recent_application"],
+                queryKey: ["recent_application", page, limit],
                 queryFn: () => recent_application({ page: page + 1, limit, days: 10 }),
+                enabled: shouldFetch,
             },
             {
-                queryKey: ["seeker-dashboard-stats"],
+                queryKey: ["seeker-dashboard-stats", page, limit],
                 queryFn: () => employer_active_jobs({ page: page + 1, limit }),
+                enabled: shouldFetch,
             },
         ],
     });
@@ -120,6 +123,10 @@ export default function EmployerDashboard() {
     ];
 
     const activeDataJobs = activeJobs?.jobs ?? []
+
+    useEffect(() => {
+    setShouldFetch(true);
+    }, []);
 
     if (isApplicationsLoading || isRecommendedJobsLoading || isStatsLoading) {
         return <JobSeekerDashboardLoading />
