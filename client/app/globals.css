@@ -9,6 +9,11 @@ body {
   box-sizing: border-box;
 }
 
+html {
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -45,6 +50,9 @@ body {
 }
 .error .ql-toolbar.ql-snow{
   border: 1px solid #fb2c36 !important;
+}
+.dark .ql-formats button svg{
+  fill: white !important;
 }
 
 .error .ql-container.ql-snow{

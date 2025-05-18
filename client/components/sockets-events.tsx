@@ -98,14 +98,53 @@ const SocketsEvents = () => {
 
         socket.on(SocketsEventsConstant.NOTIFICATION, (notification) => {
 
-            queryClient.setQueryData<NotificationsEntity[]>(["get_notifications"], (oldData) => {
-                if (!oldData) return [notification];
-                return [...oldData, notification];
+            console.log("notification", notification)
+            queryClient.setQueryData(["get_notifications"], (oldData: NotificationResponse) => {
+                if (!oldData || !Array.isArray(oldData.notifications)) {
+                    return {
+                        message: "success",
+                        notifications: [notification],
+                    };
+                }
+
+                return {
+                    ...oldData,
+                    notifications: [...oldData.notifications, notification],
+                };
             });
+
         });
 
         return () => {
             socket.off(SocketsEventsConstant.NOTIFICATION);
+        };
+    }, [socket]);
+
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on(SocketsEventsConstant.NEW_APPLICATION_SUBMIT, (notification) => {
+
+            console.log("notification", notification)
+            queryClient.setQueryData(["get_notifications"], (oldData: NotificationResponse) => {
+                if (!oldData || !Array.isArray(oldData.notifications)) {
+                    return {
+                        message: "success",
+                        notifications: [notification],
+                    };
+                }
+
+                return {
+                    ...oldData,
+                    notifications: [...oldData.notifications, notification],
+                };
+            });
+
+        });
+
+        return () => {
+            socket.off(SocketsEventsConstant.NEW_APPLICATION_SUBMIT);
         };
     }, [socket]);
 

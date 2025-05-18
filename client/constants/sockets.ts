@@ -4,6 +4,7 @@ const SocketsEventsConstant = {
     PROFILE_VIEW: "PROFILE_VIEW",
     APPLICATION_STATUS: "APPLICATION_STATUS",
     NOTIFICATION: "NOTIFICATION",
+    NEW_APPLICATION_SUBMIT: "NEW_APPLICATION_SUBMIT",
 }
 
 export default SocketsEventsConstant

@@ -68,8 +68,8 @@ def get_all_notifications(user=Depends(get_current_user)):
         {
             "$project": {
                 "_id": {"$toString": "$_id"},
-                "firstname": "$user.firstname",
-                "lastname": "$user.lastname",
+                "first_name": "$user.first_name",
+                "last_name": "$user.last_name",
                 "type": 1,
                 "status": 1,
                 "title":1,

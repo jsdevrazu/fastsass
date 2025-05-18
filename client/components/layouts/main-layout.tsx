@@ -13,14 +13,14 @@ export default function Layout({
 }) {
     return (
         <div className="w-full flex h-full">
-            <div className="lg:hidden absolute top-4 left-4 z-50">
+            <div className="lg:hidden absolute top-2 left-4 z-50">
                 <Sheet>
                     <SheetTrigger asChild>
                         <Button variant="outline" size="icon">
                             <Menu className="h-5 w-5" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-64 p-4">
+                    <SheetContent side="left" className="w-64 p-0">
                         <DashboardSidebar />
                     </SheetContent>
                 </Sheet>

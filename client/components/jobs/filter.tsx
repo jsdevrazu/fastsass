@@ -134,17 +134,6 @@ const JobsView = () => {
             </div>
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Showing 1-10 of {jobs?.total} jobs</p>
-                <Select defaultValue="newest">
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="relevant">Most Relevant</SelectItem>
-                        <SelectItem value="salary-high">Salary (High to Low)</SelectItem>
-                        <SelectItem value="salary-low">Salary (Low to High)</SelectItem>
-                    </SelectContent>
-                </Select>
             </div>
             <div className="grid gap-6">
                 {jobs_data > 0 ? jobs?.jobs?.map((job) => (

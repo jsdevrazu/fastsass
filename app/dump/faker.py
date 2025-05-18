@@ -10,9 +10,17 @@ example_user_id = ObjectId('681f3e11f6572f8b63d1e4f1')
 company_ids = [ObjectId("68215c7e6d71185134efca44"), ObjectId("681f3e11f6572f8b63d1e4f0")]
 
 experience_levels = ["entry", "mid", "senior"]
-job_types = ["full-time", "part-time", "contract", "remote"]
-skills_pool = ["Python", "JavaScript", "Docker", "AWS", "MongoDB", "React"]
+job_types = [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Temporary",
+    "Internship",
+    "Freelance"
+  ]
+skills_pool = ["Python", "JavaScript", "Docker", "AWS", "MongoDB", "React", "Next.js", "Tailwind Css"]
 locations = [
+    "Remote",
     "Barguna",
     "Barishal",
     "Bhola",

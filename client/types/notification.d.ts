@@ -1,6 +1,6 @@
 interface NotificationResponse {
-  message: string;
-  notifications?: (NotificationsEntity)[] | null;
+  message?: string;
+  notifications: NotificationsEntity[];
 }
  interface NotificationsEntity {
   type: string;

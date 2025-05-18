@@ -372,6 +372,7 @@ async def apply_job(
             "applicate": {"$in": [ObjectId(user['_id'])]}
         })
 
+
         if not job:
             api_error(404, "Job not found")
         
@@ -387,9 +388,32 @@ async def apply_job(
             "application_status": 'Pending'
         }
 
+        user_id = str(job['post_by'])
+        applicant_name = f"{user.get("first_name")} {user.get("last_name")}"
+
         db.applications.insert_one(payload)
 
         await emit_event(str(job['post_by']), 'NEW_APPLICATION', {"application": 1})
+        
+
+        payload = {
+        "user_id": ObjectId(user_id),
+        "type": "MENTION",
+        "status": "UNREAD",
+        "title": f"New Job Application Received!",
+        "message": f"{applicant_name} has just applied for your job post: \"{job.get("title")}\". Review the application to take the next step.",
+        "created_at": datetime.now(),
+        "updated_at": datetime.now(),
+        }
+        new_notification = db.notifications.insert_one(payload)
+        notification = {
+            **payload,
+            "_id": str(new_notification.inserted_id),
+            "user_id": str(user_id)
+        }
+
+        await emit_event(user_id, "NEW_APPLICATION_SUBMIT", serialize_notification(notification))
+
 
         return {
             "message": "Job Apply Successfully"
