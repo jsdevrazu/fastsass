@@ -12,12 +12,10 @@ export function NotificationPopover() {
     const { notifications, markAsRead } = useNotifications()
     const [open, setOpen] = useState(false)
 
-    // Get only unread notifications
     const unreadNotifications = notifications.filter((notification) => notification.status === "UNREAD")
 
-    // Get the 5 most recent unread notifications
     const recentUnreadNotifications = unreadNotifications
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5)
 
     const unreadCount = unreadNotifications.length
@@ -44,7 +42,7 @@ export function NotificationPopover() {
                             size="sm"
                             className="text-xs text-muted-foreground hover:text-foreground"
                             onClick={() => {
-                                unreadNotifications.forEach((notification) => markAsRead(notification.id))
+                                unreadNotifications.forEach((notification) => markAsRead(notification._id))
                                 setOpen(false)
                             }}
                         >
@@ -57,13 +55,12 @@ export function NotificationPopover() {
                         <div className="divide-y">
                             {recentUnreadNotifications.map((notification) => (
                                 <NotificationItem
-                                    key={notification.id}
+                                    key={notification._id}
                                     notification={notification}
                                     onMarkAsRead={(id) => {
                                         markAsRead(id)
                                         setOpen(false)
                                     }}
-                                    onClick={() => setOpen(false)}
                                     compact
                                 />
                             ))}

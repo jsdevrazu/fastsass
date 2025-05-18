@@ -47,3 +47,69 @@ def update_notification(
         "message": "Preferences updated successfully.",
         "updated_fields": update_fields
     }
+
+@router.get("/")
+def get_all_notifications(user=Depends(get_current_user)):
+
+    pipeline = [
+        {
+            "$match": {
+                "user_id": ObjectId(user.get("_id", ""))
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "user_id",
+                "foreignField": "_id",
+                "as": "user"
+            }
+        },
+        {
+            "$project": {
+                "_id": {"$toString": "$_id"},
+                "firstname": "$user.firstname",
+                "lastname": "$user.lastname",
+                "type": 1,
+                "status": 1,
+                "title":1,
+                "message":1,
+                "created_at": 1
+            }
+        }
+    ]
+
+    notifications = list(db.notifications.aggregate(pipeline))
+
+    return {
+        "message": "success",
+        "notifications": notifications
+    }
+
+@router.post("/read/{id}")
+def update_notification_status(id:str, user=Depends(get_current_user)):
+
+    notification = db.notifications.find_one_and_delete(
+            {"_id": ObjectId(id), "user_id": ObjectId(user['_id'])}
+    )
+
+    if not notification:
+        api_error(404, 'Notification not found')
+
+    
+    return {
+        "message": "Update Success"
+    }
+
+
+@router.post("/mark-all")
+def update_notification_status(user=Depends(get_current_user)):
+
+    result =  db.notifications.delete_many(
+        {"user_id": ObjectId(user["_id"]), "status": "UNREAD"},
+    )
+    return {
+        "message": "All notifications marked as read",
+        "modified_count": result.modified_count
+    }
+

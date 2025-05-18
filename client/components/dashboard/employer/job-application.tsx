@@ -216,7 +216,7 @@ export default function ApplicationDetailsPage({ id }: { id: string }) {
                                             <h3 className="text-xl">Questions Answer</h3>
                                             {
                                                 user_details?.questions_answer?.map((item) => (
-                                                    <div className="mt-2">
+                                                    <div key={item?.question} className="mt-2">
                                                         <p className="text-sm font-medium text-muted-foreground">{item.question}</p>
                                                         <p className="text-sm font-medium">Answer: {item.answer}</p>
                                                     </div>

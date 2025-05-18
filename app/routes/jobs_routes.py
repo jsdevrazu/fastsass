@@ -5,7 +5,7 @@ from app.validation_schema.post_validation_schema import JobSchema
 from bson import ObjectId
 from app.dependencies.subscription import require_active_subscription
 from app.auth.jwt_handler import require_role, get_current_user, optional_get_current_user
-from app.utils.helper import slugify, calculate_match_percentage
+from app.utils.helper import slugify, calculate_match_percentage, serialize_notification
 from datetime import datetime, timedelta, timezone
 from app.db.mongo import db
 from app.validation_schema.post_validation_schema import UpdateJobSchema, ApplicationStatus, ApplicationSchema, ReviewsRatinsSchema, CoverLetterInput
@@ -746,15 +746,37 @@ def get_saved_jobs(
         api_error(500, str(error))
 
 @router.post('/status/{application_id}')
-def update_job_status(application_id: str, body: ApplicationStatus):
+async def update_job_status(application_id: str, body: ApplicationStatus):
     job = db.applications.find_one_and_update(
         {"_id": ObjectId(application_id)},
         {"$set": {"application_status": body.application_status}},
         return_document=True
     )
+
+    user_id = str(job.get("applicate", ""))
     
     if not job:
         api_error(404, 'Job not found')
+    if body.application_status == 'Interviewed':
+        await emit_event(str(job.get("applicate", "")), "APPLICATION_STATUS", {"interviewed": 1})
+    
+    payload = {
+        "user_id": ObjectId(user_id),
+        "type": "RESOURCE_UPDATE",
+        "status": "UNREAD",
+        "title": f"Your job has been {body.application_status}!",
+        "message": f"`Congratulations! Your application has been {body.application_status} state",
+        "created_at": datetime.now(),
+        "updated_at": datetime.now(),
+    }
+    new_notification = db.notifications.insert_one(payload)
+    notification = {
+        **payload,
+        "_id": str(new_notification.inserted_id),
+        "user_id": str(user_id)
+    }
+
+    await emit_event(user_id, "NOTIFICATION", serialize_notification(notification))
 
     return {
         "message": "Job update status success",
@@ -777,22 +799,6 @@ async def update_job_view(slug:str):
         "message": "View Update"
     }
 
-
-@router.get('/profile-view/{user_id}')
-def update_profile_view(user_id: str):
-
-    user = db.users.find_one_and_update(
-        {"_id": ObjectId(user_id)},
-        {"$inc": {"profile_view": 1}}
-    )
-
-    if not user:
-        api_error(404, "User not found")
-
-
-    return {
-        "message": "View Update"
-    }
 
 @router.get('/applications/export')
 def export_applications(user=Depends(require_role('employer'))):
@@ -1155,7 +1161,7 @@ def get_companies(
                                 "$expr": {
                                     "$and": [
                                         { "$eq": ["$company_name", "$$companyId"] },
-                                        { "$eq": ["$status", "active"] }
+                                        { "$eq": ["$job_status", "active"] }
                                     ]
                                 }
                             }
@@ -1395,7 +1401,7 @@ def get_candidates(
         }
 
 @router.get("/job-apps/{user_id}")
-def get_spefic_job_applications(
+async def get_spefic_job_applications(
     user_id: str, 
     user=Depends(require_role('employer'))
 ):
@@ -1468,6 +1474,11 @@ def get_spefic_job_applications(
         else:
             app["resume_summary"] = ""
 
+    db.users.find_one_and_update(
+        {"_id": ObjectId(user_id)},
+        {"$inc": {"profile_view": 1}}
+    )
+    await emit_event(user_id, "PROFILE_VIEW", {"view": 1})
     return {
         "message": "Success",
         "applicants": raw_data[0] 

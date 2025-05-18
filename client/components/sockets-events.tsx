@@ -52,6 +52,63 @@ const SocketsEvents = () => {
         };
     }, [socket]);
 
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on(SocketsEventsConstant.APPLICATION_STATUS, (data) => {
+            queryClient.setQueryData<StatsResponse>(["seeker-dashboard-stats"], (oldData) => {
+
+                if (!oldData) return oldData;
+
+                return {
+                    ...oldData,
+                    interviewed: oldData.interviewed + data?.interviewed,
+                };
+            });
+        });
+
+        return () => {
+            socket.off(SocketsEventsConstant.APPLICATION_STATUS);
+        };
+    }, [socket]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on(SocketsEventsConstant.PROFILE_VIEW, (data) => {
+            queryClient.setQueryData<StatsResponse>(["seeker-dashboard-stats"], (oldData) => {
+
+                if (!oldData) return oldData;
+
+                return {
+                    ...oldData,
+                    profile_views: oldData.profile_views + data?.view,
+                };
+            });
+        });
+
+        return () => {
+            socket.off(SocketsEventsConstant.PROFILE_VIEW);
+        };
+    }, [socket]);
+
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on(SocketsEventsConstant.NOTIFICATION, (notification) => {
+
+            queryClient.setQueryData<NotificationsEntity[]>(["get_notifications"], (oldData) => {
+                if (!oldData) return [notification];
+                return [...oldData, notification];
+            });
+        });
+
+        return () => {
+            socket.off(SocketsEventsConstant.NOTIFICATION);
+        };
+    }, [socket]);
+
     return null
 }
 

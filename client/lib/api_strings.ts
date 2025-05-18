@@ -43,6 +43,9 @@ const ApiStrings = {
     PAYMENT_DETAILS: '/pay/details',
     // Notification
     UPDATE_NOTIFICATION: '/notification/update',
+    GET_NOTIFICATIONS: '/notification/',
+    MARK_READ: (id:string) => `/notification/read/${id}`,
+    ALL_MARK_READ: `/notification/mark-all`,
     // Employer
     SENT_INVITE: '/employer/invite',
     GET_INVITES: '/employer/invites',
