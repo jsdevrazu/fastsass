@@ -3,3 +3,4 @@ API_PREFIX = '/api/v1'
 UPLOAD_RESUME_DIR = "uploads/resume"
 UPLOAD_LOGO_DIR = "uploads/logo"
 AI_MODEL = "meta-llama/llama-4-maverick:free"
+MAX_JOB_GENERATE=50

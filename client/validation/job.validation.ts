@@ -33,7 +33,7 @@ export const jobSchema = z.object({
 
 export const generateApplicationSchema = (questions: string[] = []) => {
   const baseSchema = {
-    cover_letter: z.string().min(10, "Cover letter is required"),
+    cover_letter: z.string().min(10, "Cover letter at least 10 characters"),
     experience: z.string().min(1, "Experience is required"),
   }
 

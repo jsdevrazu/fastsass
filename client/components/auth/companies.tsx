@@ -33,14 +33,14 @@ export default function CompaniesPage() {
     })
 
     const companies = data?.companies ?? []
-    const totalPages = data?.total ?? 0
+    const totalPages = (data?.total ?? 0 ) / 10 > 1 ? (data?.total ?? 0 ) / 10 : 1
+
 
     useEffect(() => {
         refetch()
     }, [debouncedTitle, page, location, industry])
 
     if (isLoading) return <CompaniesLoading />
-
 
 
 

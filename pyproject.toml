@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "authlib>=1.5.2",
     "certifi>=2025.4.26",
+    "faker>=37.3.0",
     "fastapi>=0.115.12",
     "httpx>=0.28.1",
     "itsdangerous>=2.2.0",

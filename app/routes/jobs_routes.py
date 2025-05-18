@@ -142,6 +142,8 @@ def get_all_jobs(
         if max_salary is not None:
             filters["max_salary"] = {"$lte": max_salary}
 
+        filters["job_status"] = "active"
+
         pipeline = [
             {"$match": filters},
             {
@@ -553,10 +555,16 @@ def get_recommended_jobs(
 
     if salary_range:
         try:
-            min_salary, max_salary = map(int, salary_range.split("-"))
-            filters["salary"] = {"$gte": min_salary, "$lte": max_salary}
-        except ValueError:
-            pass 
+            min_str, max_str = salary_range.lower().replace("k", "000").split("-")
+            preferred_min = int(min_str.strip())
+            preferred_max = int(max_str.strip())
+
+            filters["$and"] = [
+                {"min_salary": {"$lte": preferred_max}},
+                {"max_salary": {"$gte": preferred_min}},
+            ]
+        except Exception:
+            pass   
         
     applied_jobs = list(db.applications.find(
             {"applicate": ObjectId(user['_id'])},
@@ -846,7 +854,7 @@ def export_applications(user=Depends(require_role('employer'))):
 
         for job in jobs_cursor:
             job_title = job.get("title", "")
-            status = job.get("status", "")
+            status = job.get("job_status", "")
             posted = job.get("created_at", datetime.now()).strftime("%Y-%m-%d")
             expires = job.get("application_dead_line", datetime.now()).strftime("%Y-%m-%d")
 
@@ -944,10 +952,9 @@ async def get_my_jobs(
                     "job_type": 1,
                     "slug": 1,
                     "created_at": 1,
-                    "status": 1,
+                    "job_status": 1,
                     "updated_at": 1,
                     "total_applications": 1,
-                    "job_status": 1,
                     "posted_by_user._id": {"$toString": "$posted_by_user._id"},
                     "posted_by_user.name": 1,
                     "posted_by_user.logo": 1
@@ -973,7 +980,7 @@ def get_employer_stats(user=Depends(require_role('employer'))):
 
     active_job = db.jobs.count_documents({
         "company_name": company_id,
-        "status": "active"
+        "job_status": "active"
     })
 
     total_application = db.applications.count_documents({
@@ -1005,7 +1012,7 @@ def get_recent_applicants(
     since_date = datetime.now(timezone.utc) - timedelta(days=days)
     skip = (page - 1) * limit
 
-    job_query = {"company_name": company_id, "status": "active"}
+    job_query = {"company_name": company_id, "job_status": "active"}
 
     jobs = list(db.jobs.find(job_query))
     job_id_map = {job["_id"]: job for job in jobs}
@@ -1090,7 +1097,7 @@ def get_active_jobs_with_application_count(
     company_id = ObjectId(user["company_id"])
 
     jobs = list(db.jobs.find(
-        {"company_name": company_id, "status": "active"},
+        {"company_name": company_id, "job_status": "active"},
         {
             "_id": 1,
             "title": 1,

@@ -21,10 +21,11 @@ class JobModel(BaseModel):
     skills: Optional[list] = None
     questions: Optional[list] = None
     apply_settings: Literal['email', 'external_link', 'application_form'] = 'application_form'
-    job_status: Literal['open', 'complete'] = 'open'
+    job_status: Literal['open', 'complete', 'closed'] = 'open'
     job_view: Optional[int] = 0
     application_email: Optional[str] = ''
     application_link: Optional[str] = ''
+    company_name: ObjectId
 
     class Config:
         name = 'jobs'
