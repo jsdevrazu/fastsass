@@ -97,8 +97,6 @@ const SocketsEvents = () => {
         if (!socket) return;
 
         socket.on(SocketsEventsConstant.NOTIFICATION, (notification) => {
-
-            console.log("notification", notification)
             queryClient.setQueryData(["get_notifications"], (oldData: NotificationResponse) => {
                 if (!oldData || !Array.isArray(oldData.notifications)) {
                     return {
@@ -126,7 +124,6 @@ const SocketsEvents = () => {
 
         socket.on(SocketsEventsConstant.NEW_APPLICATION_SUBMIT, (notification) => {
 
-            console.log("notification", notification)
             queryClient.setQueryData(["get_notifications"], (oldData: NotificationResponse) => {
                 if (!oldData || !Array.isArray(oldData.notifications)) {
                     return {

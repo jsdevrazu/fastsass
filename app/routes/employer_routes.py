@@ -42,12 +42,22 @@ def invite_team_member(
         "created_at": datetime.now(timezone.utc)
     }
 
-    db.team_invites.insert_one(invite_data)
+    new_invite = db.team_invites.insert_one(invite_data)
 
     invite_url = f"{settings.client_url}/set-password?token={invite_token}&email={body.email}"
     send_email(body.full_name, body.email, 6, {"INVITEE_NAME": body.full_name, "INVITE_LINK":  invite_url, "SENDER_NAME": f"{user.get("first_name")} {user.get("last_name")}", "TEAM_NAME": body.team_name, "APP_NAME": "FastSass"})
 
-    return {"message": "Invitation sent successfully."}
+    payload = {
+                "id": str(new_invite.inserted_id),
+                "full_name": body.full_name,
+                "email": body.email,
+                "role": body.role,
+                "status": "pending",
+                "created_at": datetime.now(timezone.utc),
+                "invite_message": body.invite_message,
+    }
+
+    return {"message": "Invitation sent successfully.", "user": payload }
 
 @router.post("/set-password")
 def set_password_from_invite(body: SetPasswordInviteSchema):
@@ -66,8 +76,7 @@ def set_password_from_invite(body: SetPasswordInviteSchema):
         "first_name": invite["full_name"].split()[0],
         "last_name": " ".join(invite["full_name"].split()[1:]),
         "email": invite["email"],
-        "role": "employer",
-        "employer_role": invite["role"],
+        "role": invite["role"],
         "company_id": invite["company_id"],
         "is_verified": True,
         "password": hashed_pw,

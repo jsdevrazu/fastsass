@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import {
     CheckIcon,
     Crown,
+    User,
     Users,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -21,7 +22,7 @@ import ChangePassword from "@/components/account/change-password"
 import DeleteAccount from "@/components/account/delete-account"
 import EmployerProfile from "@/components/account/account-form"
 import { useAuthStore } from "@/store/store"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { create_billing_portal } from "@/lib/apis/payment"
 import { OverlayLock } from "@/components/overlay-lock"
 import Link from "next/link"
@@ -34,8 +35,10 @@ import { delete_invite, get_invites } from "@/lib/apis/employer"
 import { DataTable } from "@/components/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { baseURLPhoto } from "@/lib/axios"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default function EmployerSettingsPage() {
+    const queryClient = useQueryClient()
     const [inviteModalOpen, setInviteModalOpen] = useState(false)
     const [page, setPage] = useState(0)
     const [limit, setLimit] = useState(10)
@@ -75,7 +78,14 @@ export default function EmployerSettingsPage() {
 
     const { mutate: mnFunc, isPending: deleteLoading } = useMutation({
         mutationFn: delete_invite,
-        onSuccess: () => {
+        onSuccess: (_, id) => {
+            queryClient.setQueryData(['get_invites'], (oldData: UsersResponse) => {
+                const filterData = oldData.users?.filter((user) => user.id !== id)
+                return {
+                    message: 'success',
+                    users: filterData
+                }
+            })
             toast.success("Invite deleted successfully")
         },
         onError: (error) => {
@@ -375,7 +385,11 @@ export default function EmployerSettingsPage() {
                                                     Invite Team Member
                                                 </Button>
                                             </div>
-                                            <DataTable
+                                            {data?.users?.length === 0 ? <EmptyState
+                                                icon={User}
+                                                title="No invite team members available"
+                                                description="Click invite team button to add your team mate."
+                                            /> : <DataTable
                                                 columns={columns}
                                                 data={data?.users ?? []}
                                                 page={page}
@@ -387,7 +401,7 @@ export default function EmployerSettingsPage() {
                                                     setPage(newPage);
                                                     setLimit(newLimit);
                                                 }}
-                                            />
+                                            />}
                                         </CardContent>
                                     </Card>
 

@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UserPlus } from "lucide-react"
 import { toast } from "sonner"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { invite_sent } from "@/lib/apis/employer"
 import { useAuthStore } from "@/store/store"
 import ErrorMessage from "../error-message"
@@ -41,10 +41,9 @@ const defaultValues: Partial<InviteFormValues> = {
 interface InviteTeamMemberModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onInviteSent?: (values: InviteFormValues) => void
 }
 
-export function InviteTeamMemberModal({ open, onOpenChange, onInviteSent }: InviteTeamMemberModalProps) {
+export function InviteTeamMemberModal({ open, onOpenChange }: InviteTeamMemberModalProps) {
 
   const { reset, handleSubmit, control, formState: { errors }, } = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
@@ -52,15 +51,28 @@ export function InviteTeamMemberModal({ open, onOpenChange, onInviteSent }: Invi
   })
 
   const { user } = useAuthStore()
+  const queryClient = useQueryClient()
 
   const { mutate, isPending } = useMutation({
     mutationFn: invite_sent,
-    onSuccess: (_, data) => {
+    onSuccess: (data, variable) => {
+      queryClient.setQueryData(['get_invites'], (oldData: UsersResponse) => {
+        if (!oldData || !Array.isArray(oldData.users)) {
+          return {
+            message: "success",
+            users: [data.user],
+          };
+        }
+
+        return {
+          ...oldData,
+          users: [...oldData.users, data.user],
+        };
+      })
       toast.success("Invitation sent", {
-        description: `An invitation has been sent to ${data.email}`,
+        description: `An invitation has been sent to ${variable.email}`,
       })
       reset(defaultValues)
-      // onInviteSent?.(data)
       onOpenChange(false)
     },
     onError: (error) => {

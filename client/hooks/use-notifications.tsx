@@ -1,16 +1,19 @@
 "use client"
 
 import { get_notifications, mark_all_read, mark_as_read } from "@/lib/apis/notification"
+import { useAuthStore } from "@/store/store"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 
 
 export function useNotifications() {
     const [notifications, setNotifications] = useState<NotificationsEntity[]>([])
+    const { accessToken} = useAuthStore()
 
     const { data } = useQuery<NotificationResponse>({
         queryKey: ['get_notifications'],
-        queryFn: get_notifications
+        queryFn: get_notifications,
+        enabled: accessToken ? true : false
     })
 
     const { mutate } = useMutation({

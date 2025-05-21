@@ -239,9 +239,7 @@ async def login(res: Response, body:LoginSchema):
         
 
         db_user['_id'] = str(db_user['_id'])
-        if db_user['role'] == 'employer':
-            db_user['company_id'] = str(db_user['company_id'])
-        
+        db_user.update({ "company_id": str(db_user.get("company_id", ""))})
         token = fetch_token(str(db_user['_id']), db_user['role'])
         access_token = token['access_token']
         refresh_token = token['refresh_token']
@@ -350,7 +348,7 @@ def refresh_token(req: Request, res: Response,  body: TokenSchema):
     if not body_token:
         api_error(401, "Refresh token error")
     decode_token = decoded_token(body_token)
-    user = db.users.find_one({"email": decode_token['email']})
+    user = db.users.find_one({"_id": ObjectId(decode_token['_id'])})
     if not user:
         api_error(404, 'User not found')
 
