@@ -20,7 +20,7 @@ httpx==0.28.1
 idna==3.10
 itsdangerous==2.2.0
 jiter==0.10.0
-openai==1.79.0
+openai==1.81.0
 openpyxl==3.1.5
 passlib==1.7.4
 pycparser==2.22
@@ -44,7 +44,7 @@ starlette==0.46.2
 stripe==12.1.0
 tqdm==4.67.1
 typing-extensions==4.13.2
-typing-inspection==0.4.0
+typing-inspection==0.4.1
 tzdata==2025.2
 urllib3==2.4.0
 uvicorn==0.34.2
