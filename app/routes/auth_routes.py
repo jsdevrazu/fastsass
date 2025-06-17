@@ -134,7 +134,7 @@ async def github_callback(request: Request):
         user = db.users.insert_one(new_user)
         user_id = str(user.inserted_id)
         token_data = fetch_token(user_id, role)
-        db.users.update_one({"_id": new_user.inserted_id}, {"$set": {"refresh_token": token["refresh_token"]}})
+        db.users.update_one({"_id": user.inserted_id}, {"$set": {"refresh_token": token["refresh_token"]}})
 
     return RedirectResponse(f"{settings.client_url}/api/auth/callback?token={token_data['access_token']}")
 
