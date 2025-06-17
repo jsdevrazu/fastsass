@@ -38,35 +38,39 @@ uv.lock # Uvicorn lock file for deployment
 
 1. Clone the repository:
     ```bash
-    git clone https://your-repository-url.git
-    cd your-project-directory
+    git clone https://github.com/jsdevrazu/fastsass
+    cd fastsass
     ```
 
-2. Create a virtual environment and activate it:
+2. Setup a uv in your dev machine:
     ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate  # On Windows use .venv\Scripts\activate
+        pip install uv
     ```
 
 3. Install the required dependencies:
     ```bash
-    pip install -r requirements.txt
+    rm uv.lock
+    uv run main.py
     ```
 
 4. Set up environment variables:
     - Create a `.env` file in the root directory and add the necessary environment variables:
       ```bash
-        MONGO_URI = your-secret-url
+        MONGO_URI = mongo_uri
         DB_NAME = fastsasss
         SECRET_KEY = your-secret-key
         ALGORITHM = HS256
-        API_KEY = your-api-key
+        API_KEY= your-api-key
         GOOGLE_CLIENT_ID = your_client_id
         GOOGLE_CLIENT_SECRET = your_client_secret
         STRIPE_SECRET_KEY= stripe-secret
+        GITHUB_CLIENT_ID=github client secret
+        GITHUB_CLIENT_SECRET=github client id
         STRIPE_WEBHOOK_SECRET= webhook-secret
-        STRIPE_SUCCESS_URL=client-side-url/success
-        STRIPE_CANCEL_URL=client-side-url/cancel
+        STRIPE_SUCCESS_URL=http://
+        STRIPE_CANCEL_URL=http://
+        OPEN_API_KEY=open router api key
+        CLIENT_URL=http://localhost:3000
       ```
 
 5. Create the `uploads` folder for storing file uploads:
