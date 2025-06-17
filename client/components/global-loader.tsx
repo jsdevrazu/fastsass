@@ -19,7 +19,7 @@ export function GlobalLoader() {
         }
     }, [loading]);
 
-    // if (!loading) return null
+    if (!loading) return null
 
     return (
         <div className="fixed z-[10000] inset-0 flex items-center justify-center bg-background overflow-hidden">
