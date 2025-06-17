@@ -114,6 +114,7 @@ async def github_callback(request: Request):
 
     existing_user = db.users.find_one({"email": f"{username}@github.com"})
     company_id = None
+    token_data = None
     
     if "employer" in role:
            company = db.companies.insert_one({
