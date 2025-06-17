@@ -100,7 +100,6 @@ async def google_callback(request: Request):
     response = RedirectResponse(url=f"{settings.client_url}/api/auth/callback?token={token['access_token']}")
     return response
 
-
 @router.get("/auth/github/callback")
 async def github_callback(request: Request):
     token = await oauth.github.authorize_access_token(request)
@@ -112,20 +111,18 @@ async def github_callback(request: Request):
     username = user_data.get("login")
     avatar_url = user_data.get("avatar_url")
 
-    existing_user = db.users.find_one({"email": f"{username}@github.com"})
+    email = email or f"{username}@github.com"
+    existing_user = db.users.find_one({"email": email})
     company_id = None
-    token_data = None
-    
+
     if "employer" in role:
-           company = db.companies.insert_one({
-                "name": username
-            })
-           company_id = company.inserted_id
+        company = db.companies.insert_one({"name": username})
+        company_id = company.inserted_id
 
     if not existing_user:
         new_user = {
             "first_name": username,
-            "email": email or f"{username}@github.com",
+            "email": email,
             "avatar": avatar_url,
             "auth_provider": "github",
             "is_verified": True,
@@ -135,7 +132,19 @@ async def github_callback(request: Request):
         user = db.users.insert_one(new_user)
         user_id = str(user.inserted_id)
         token_data = fetch_token(user_id, role)
-        db.users.update_one({"_id": user.inserted_id}, {"$set": {"refresh_token": token_data["refresh_token"]}})
+
+        db.users.update_one(
+            {"_id": user.inserted_id},
+            {"$set": {"refresh_token": token_data["refresh_token"]}}
+        )
+    else:
+        user_id = str(existing_user["_id"])
+        token_data = fetch_token(user_id, existing_user.get("role", role))
+
+        db.users.update_one(
+            {"_id": existing_user["_id"]},
+            {"$set": {"refresh_token": token_data["refresh_token"]}}
+        )
 
     return RedirectResponse(f"{settings.client_url}/api/auth/callback?token={token_data['access_token']}")
 
